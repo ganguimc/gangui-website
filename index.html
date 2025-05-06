@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="GANGUI - An innovative Minecraft server offering a unique gaming experience with exclusive features.">
+    <title>GANGUI | Minecraft Server</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="icon" href="img/logo.png" type="image/png">
+    <link rel="icon" href="img/favicon.png" type="image/png">
+</head>
+<body>
+    <!-- Le header sera chargé dynamiquement via components.js -->
+
+    <!-- Hero Section -->
+    <section id="hero" class="hero">
+        <div class="container hero-flex">
+            <div class="hero-left" style="width:100%">
+                <h1 class="hero-title">
+                    <span class="hero-brand">GANGUI</span><br>
+                    <span data-lang="hero-title-main">A Minecraft server</span>
+                </h1>
+                <p class="hero-desc" data-lang="hero-desc">
+                    An innovative Minecraft server offering a unique gaming experience with exclusive features, performance and security.
+                </p>
+                <div class="hero-buttons hero-buttons-inline">
+                    <a href="#join" class="btn btn-primary">
+                        <i class="fas fa-gamepad"></i>
+                        <span data-lang="hero-play">Play now</span>
+                    </a>
+                    <a href="https://discord.gg/7Kj8vsGdSr" class="btn btn-discord" target="_blank">
+                        <i class="fab fa-discord"></i>
+                        <span data-lang="hero-discord">Join Discord</span>
+                    </a>
+                    <a href="#features" class="btn btn-secondary">
+                        <i class="fas fa-bolt"></i>
+                        <span data-lang="hero-features">Features</span>
+                    </a>
+                    <a href="https://github.com/ganguimc/" class="btn btn-dark" target="_blank">
+                        <i class="fab fa-github"></i>
+                        <span>GitHub</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="hero-bg">
+            <div id="particles-js" style="position: absolute; width: 100%; height: 100%;"></div>
+            <div class="hero-overlay"></div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 data-lang="features-title">Features</h2>
+                <p data-lang="features-subtitle">Discover what makes GANGUI unique</p>
+            </div>
+            <div class="features-carousel-wrapper">
+                <button class="carousel-arrow left" aria-label="Précédent"><i class="fas fa-chevron-left"></i></button>
+                <button class="carousel-arrow right" aria-label="Suivant"><i class="fas fa-chevron-right"></i></button>
+                <div class="features-grid carousel">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3 data-lang="feature1-title">Performance</h3>
+                        <p data-lang="feature1-desc">Serveur propulsé par Minestom, une technologie nouvelle génération pour un gameplay ultra-fluide et sans lag.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                            <i class="fas fa-user-secret"></i>
+                    </div>
+                        <h3 data-lang="feature2-title">Anonymat</h3>
+                        <p data-lang="feature2-desc">Connectez-vous anonymement via hidden.gangui.eu pour masquer votre IP et jouer sans laisser de trace, comme expliqué dans la FAQ.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3 data-lang="feature3-title">AI Assistant</h3>
+                    <p data-lang="feature3-desc">Let GAIA, your smart AI companion, guide you and answer your questions in real time.</p>
+                </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                        <h3 data-lang="feature4-title">Compatibilité</h3>
+                        <p data-lang="feature4-desc">Jouez sur toutes les versions de Minecraft de 1.8 à 1.21, y compris Bedrock !</p>
+                    </div>
+                </div>
+                <div class="carousel-dots"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="faq">
+        <div class="container">
+            <div class="section-header">
+                <h2 data-lang="faq-title">FAQ</h2>
+                <p data-lang="faq-subtitle">Frequently Asked Questions</p>
+            </div>
+            <div class="faq-content">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3 data-lang="faq1-question">How to join the server?</h3>
+                        <div class="faq-toggle">
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                    <div class="faq-answer">
+                        <p data-lang="faq1-answer">Launch Minecraft (Java Edition 1.8 to 1.21 or Bedrock), go to "Multiplayer", then "Add Server" and enter the address: mc.gangui.eu</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3 data-lang="faq2-question">Are cracked versions allowed?</h3>
+                        <div class="faq-toggle">
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                    <div class="faq-answer">
+                        <p data-lang="faq2-answer">No, GANGUI is a premium server. You need an official Minecraft account to connect.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3 data-lang="faq3-question">How does anonymous connection work?</h3>
+                        <div class="faq-toggle">
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                    <div class="faq-answer">
+                        <p data-lang="faq3-answer">Connect to hidden.gangui.eu instead of the main address to hide your IP and protect yourself against DDoS attacks.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3 data-lang="faq4-question">How to get a rank?</h3>
+                        <div class="faq-toggle">
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                    <div class="faq-answer">
+                        <p data-lang="faq4-answer">Visit our store at store.gangui.eu or use the /store command in-game to discover our different ranks and their benefits.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3 data-lang="faq5-question">How to contact support?</h3>
+                        <div class="faq-toggle">
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                    <div class="faq-answer">
+                        <p data-lang="faq5-answer">Join our Discord and open a support ticket, or send an email to support@gangui.eu.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Join Section -->
+    <section id="join" class="join">
+        <div class="container">
+            <div class="join-content">
+                <div class="section-header">
+                    <h2 data-lang="join-title">Join GANGUI</h2>
+                    <p data-lang="join-subtitle">Ready to start the adventure?</p>
+                </div>
+                <div class="join-steps">
+                    <div class="join-step">
+                        <div class="step-number"><i class="fas fa-copy"></i></div>
+                        <div class="step-content">
+                            <h3 data-lang="step1-title">Copy the IP</h3>
+                            <p data-lang-html="step1-desc">Click to copy the server address: <b>mc.gangui.eu</b></p>
+                        </div>
+                    </div>
+                    <div class="join-step">
+                        <div class="step-number"><i class="fas fa-plus-square"></i></div>
+                        <div class="step-content">
+                            <h3 data-lang="step2-title">Add to Minecraft</h3>
+                            <p data-lang="step2-desc">Open Minecraft, go to Multiplayer, then Add Server and paste the address.</p>
+                        </div>
+                    </div>
+                    <div class="join-step">
+                        <div class="step-number"><i class="fas fa-play"></i></div>
+                        <div class="step-content">
+                            <h3 data-lang="step3-title">Play!</h3>
+                            <p data-lang="step3-desc">Join GANGUI and start your adventure instantly.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="join-bg"></div>
+    </section>
+
+    <!-- Le footer sera chargé dynamiquement via components.js -->
+
+    <!-- Back to Top Button -->
+    <button class="back-to-top" aria-label="Back to top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    <script src="js/translations.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/main.js"></script>
+    <div class="mouse-spotlight"></div>
+</body>
+</html>
