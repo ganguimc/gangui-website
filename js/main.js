@@ -1,26 +1,27 @@
 /**
  * Fichier main.js
  * Ce fichier contient les fonctionnalités JavaScript pour un site web multilingue
+ * et gère la logique principale de traduction du DOM.
  */
 
 // -----------------------------------------------------
-// 1. SÉLECTEURS DOM
+// 1. SÉLECTEURS DOM (ceux utilisés par main.js)
 // -----------------------------------------------------
 const loader = document.querySelector('.loader');
-const navbar = document.querySelector('.navbar');
 const navLinks = document.querySelectorAll('.nav-menu a');
 const backToTop = document.querySelector('.back-to-top');
-const faqItems = document.querySelectorAll('.faq-item');
 const copyIpButtons = document.querySelectorAll('.copy-ip');
-const langButtons = document.querySelectorAll('.lang-btn');
-const animElements = document.querySelectorAll('.fade-in, .slide-up, .slide-right, .slide-left');
-const header = document.querySelector('.header');
+const header = document.querySelector('.header'); // Pour initThemeHandler
 
 // -----------------------------------------------------
-// 2. VARIABLES GLOBALES
+// 2. VARIABLES GLOBALES POUR LA LANGUE
 // -----------------------------------------------------
-// Langue actuelle
-let currentLang = 'en';
+let currentLang = 'en'; // Valeur par défaut, sera mise à jour par initLanguageSystem
+const SITE_LANGUAGE_KEY = 'site_language'; // Clé localStorage standardisée
+const DEFAULT_SITE_LANG = 'en';
+
+// LANGUAGE_DISPLAY_NAMES sera récupéré depuis SiteManager si common.js est chargé avant,
+// sinon, prévoir un fallback ou s_assurer de l_ordre de chargement.
 
 // -----------------------------------------------------
 // 3. FONCTIONS UTILITAIRES
@@ -33,124 +34,123 @@ function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => {
         const tooltip = document.createElement('div');
         tooltip.className = 'tooltip';
-        tooltip.textContent = 'Copied!';
+        tooltip.textContent = 'Copied!'; // TODO: Traduire également ce message via translations.js
         document.body.appendChild(tooltip);
+        // Idéalement, positionner le tooltip par rapport au bouton cliqué.
         setTimeout(() => tooltip.remove(), 2000);
+    }).catch(err => {
+        console.error('Erreur lors de la copie dans le presse-papiers:', err);
     });
 }
 
 // -----------------------------------------------------
-// 4. FONCTIONS DE GESTION DE LANGUE
+// 4. FONCTION PRINCIPALE DE GESTION DE LANGUE
 // -----------------------------------------------------
 /**
- * Met à jour la langue de l'interface
+ * Met à jour la langue de l'interface, sauvegarde la préférence et met à jour l'UI du sélecteur.
+ * CECI EST LA FONCTION CENTRALE POUR METTRE À JOUR LA LANGUE.
+ * Elle devrait être appelée par le sélecteur de langue dans components.js.
  * @param {string} lang - Code de la langue ('en', 'fr', etc.)
+ * @param {boolean} savePreference - Faut-il sauvegarder dans localStorage ? (true par défaut)
  */
-function updateLanguage(lang) {
+function updateLanguage(lang, savePreference = true) {
+    if (typeof translations === 'undefined') {
+        console.error('L\'objet translations (translations.js) n\'est pas défini ou chargé. Impossible de traduire.');
+        return;
+    }
+    
+    const displayNames = (typeof SiteManager !== 'undefined' && SiteManager.LANGUAGE_NAMES)
+        ? SiteManager.LANGUAGE_NAMES
+        : { 'en': 'English', 'fr': 'Français', 'es': 'Español', 'de': 'Deutsch', 'ro': 'Română', 'ru': 'Русский', 'zh': '中文' }; // Fallback
+
+    if (!translations[lang] || !displayNames[lang]) {
+        console.warn(`Traductions ou nom d'affichage non trouvés pour la langue '${lang}'. Utilisation de la langue par défaut '${DEFAULT_SITE_LANG}'.`);
+        lang = DEFAULT_SITE_LANG;
+    }
+
     currentLang = lang;
-    // Mettre à jour tous les éléments avec l'attribut data-lang
+    
     document.querySelectorAll('[data-lang]').forEach(element => {
         const key = element.getAttribute('data-lang');
-        if (translations[lang] && translations[lang][key]) {
-            if (element.getAttribute('data-lang-html')) {
+        if (key === 'current-lang') return; // Géré séparément pour le sélecteur de langue
+
+        if (translations[lang] && typeof translations[lang][key] !== 'undefined') {
+            if (element.hasAttribute('data-lang-html')) {
                 element.innerHTML = translations[lang][key];
             } else {
                 element.textContent = translations[lang][key];
             }
+        } else {
+            // console.warn(`Clé de traduction manquante pour '${key}' dans la langue '${lang}'.`);
         }
     });
+
+    const langCurrentSpan = document.querySelector('#langDropdownBtn .lang-current');
+    if (langCurrentSpan) {
+        langCurrentSpan.textContent = displayNames[lang];
+         // Mettre aussi à jour l'attribut data-lang du span si vous voulez qu'il soit "traduit" au prochain cycle, mais ce n'est pas nécessaire ici.
+        // langCurrentSpan.setAttribute('data-lang', 'current-lang'); // Assure que sa clé est correcte.
+    }
+
+
+    if (savePreference) {
+        if (typeof SiteManager !== 'undefined' && SiteManager.storage && SiteManager.storage.save) {
+            SiteManager.storage.save(SITE_LANGUAGE_KEY, lang);
+        } else {
+            try { localStorage.setItem(SITE_LANGUAGE_KEY, lang); } catch (e) { console.error(e); }
+        }
+    }
+    
+    // console.log(`Langue appliquée par main.js : ${lang}`);
+    document.dispatchEvent(new CustomEvent('languageChanged', { detail: { language: lang } }));
 }
 
 /**
- * Initialise le système de gestion des langues
+ * Initialise le système de gestion des langues au chargement de la page.
  */
 function initLanguageSystem() {
-    // Détection de la langue au premier chargement
-    let savedLang = localStorage.getItem('lang');
-    if (!savedLang) {
-        updateLanguage('en');
-        localStorage.setItem('lang', 'en');
+    let savedLang = DEFAULT_SITE_LANG;
+    if (typeof SiteManager !== 'undefined' && SiteManager.storage && SiteManager.storage.get) {
+        savedLang = SiteManager.storage.get(SITE_LANGUAGE_KEY, DEFAULT_SITE_LANG);
     } else {
-        updateLanguage(savedLang);
+        try { const langFromStorage = localStorage.getItem(SITE_LANGUAGE_KEY); if (langFromStorage) savedLang = langFromStorage; } catch (e) { console.error(e); }
     }
-
-    // Initialisation du dropdown de langue
-    const langDropdownBtn = document.getElementById('langDropdownBtn');
-    const langDropdownMenu = document.getElementById('langDropdownMenu');
-    const langDropdown = langDropdownBtn ? langDropdownBtn.parentElement : null;
-    const langCurrent = document.querySelector('.lang-current');
-
-    if (langDropdownBtn && langDropdownMenu && langDropdown) {
-        langDropdownBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            langDropdown.classList.toggle('open');
-        });
-        
-        document.querySelectorAll('.lang-option').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const lang = btn.getAttribute('data-lang');
-                if(langCurrent) langCurrent.textContent = btn.textContent;
-                langDropdown.classList.remove('open');
-                updateLanguage(lang);
-                localStorage.setItem('lang', lang); // Sauvegarde la langue choisie
-            });
-        });
-        
-        document.addEventListener('click', (e) => {
-            if (!langDropdown.contains(e.target)) {
-                langDropdown.classList.remove('open');
-            }
-        });
-    }
+    
+    updateLanguage(savedLang, false); 
 }
+
 
 // -----------------------------------------------------
 // 5. FONCTIONS DE LA FAQ
 // -----------------------------------------------------
-/**
- * Bascule l'état ouvert/fermé d'un élément FAQ
- * @param {HTMLElement} item - Élément FAQ à basculer
- */
 function toggleFAQ(item) {
     const answer = item.querySelector('.faq-answer');
-    const toggle = item.querySelector('.faq-toggle i');
     const isOpen = item.classList.contains('active');
+    const allFaqItems = document.querySelectorAll('.faq-item');
 
-    // Fermer toutes les réponses
-    faqItems.forEach(otherItem => {
-        otherItem.classList.remove('active');
-        const otherAnswer = otherItem.querySelector('.faq-answer');
-        const otherToggle = otherItem.querySelector('.faq-toggle i');
-        if (otherAnswer) {
-            otherAnswer.style.maxHeight = null;
-        }
-        if (otherToggle) {
-            otherToggle.classList.remove('active');
+    allFaqItems.forEach(otherItem => {
+        if (otherItem !== item) {
+            otherItem.classList.remove('active');
+            const otherAnswer = otherItem.querySelector('.faq-answer');
+            if (otherAnswer) {
+                otherAnswer.style.maxHeight = null;
+            }
         }
     });
 
-    // Ouvrir/fermer la réponse cliquée
-    if (!isOpen) {
+    if (!isOpen && answer) {
         item.classList.add('active');
-        if (answer) {
-            // Force le recalcul du layout pour une animation fluide
-            answer.style.maxHeight = '0px';
-            void answer.offsetWidth; // Force reflow
-            answer.style.maxHeight = answer.scrollHeight + 'px';
-        }
-        if (toggle) {
-            toggle.classList.add('active');
-        }
+        answer.style.maxHeight = answer.scrollHeight + 'px';
+    } else if (isOpen && answer) {
+        item.classList.remove('active');
+        answer.style.maxHeight = null;
     }
 }
 
-/**
- * Initialise les événements pour la FAQ
- */
 function initFAQ() {
-    const faqItems = document.querySelectorAll('.faq-item');
-    if (faqItems.length > 0) {
-        faqItems.forEach(item => {
+    const allFaqItems = document.querySelectorAll('.faq-item');
+    if (allFaqItems.length > 0) {
+        allFaqItems.forEach(item => {
             const question = item.querySelector('.faq-question');
             if (question) {
                 question.addEventListener('click', () => toggleFAQ(item));
@@ -162,53 +162,31 @@ function initFAQ() {
 // -----------------------------------------------------
 // 6. FONCTIONS DU CARROUSEL
 // -----------------------------------------------------
-/**
- * Initialise le carrousel des fonctionnalités
- */
 function initFeaturesCarousel() {
     const carousel = document.querySelector('.features-grid.carousel');
-    if (!carousel) {
-        // console.log('Carousel not found, skipping initialization');
-        return;
-    }
+    if (!carousel) return;
 
     const cardElements = carousel.querySelectorAll('.feature-card');
-    if (!cardElements || cardElements.length === 0) {
-        // console.log('No feature cards found, skipping initialization');
-        return;
-    }
-    const cards = Array.from(cardElements); // Travailler avec un vrai Array
-
+    if (!cardElements || cardElements.length === 0) return;
+    
+    const cards = Array.from(cardElements);
     const dotsContainer = document.querySelector('.carousel-dots');
     let currentIndex = 0;
-    let resizeTimeout;
-    let scrollSyncTimeout;
+    let resizeTimeout, scrollSyncTimeout;
 
-    // Rendre le carrousel focusable pour les événements clavier
     carousel.tabIndex = 0;
 
     function showSlide(index, smooth = true) {
-        // Gestion de la boucle infinie
-        if (index < 0) {
-            index = cards.length - 1;
-        } else if (index >= cards.length) {
-            index = 0;
-        }
+        if (cards.length === 0) return;
+        index = (index % cards.length + cards.length) % cards.length;
         currentIndex = index;
-
         const card = cards[currentIndex];
         if (!card) return;
 
-        const scrollPosition = card.offsetLeft - carousel.offsetLeft;
+        const scrollTarget = card.offsetLeft - carousel.offsetLeft;
+        carousel.scrollTo({ left: scrollTarget, behavior: smooth ? 'smooth' : 'auto' });
 
-        carousel.scrollTo({
-            left: scrollPosition,
-            behavior: smooth ? 'smooth' : 'auto'
-        });
-
-        cards.forEach((c, i) => {
-            c.classList.toggle('active', i === currentIndex);
-        });
+        cards.forEach((c, i) => c.classList.toggle('active', i === currentIndex));
 
         if (dotsContainer) {
             if (dotsContainer.children.length !== cards.length) {
@@ -220,239 +198,176 @@ function initFeaturesCarousel() {
                     dotsContainer.appendChild(dot);
                 });
             }
-            Array.from(dotsContainer.children).forEach((dot, i) => {
-                dot.classList.toggle('active', i === currentIndex);
-            });
+            Array.from(dotsContainer.children).forEach((dot, i) => dot.classList.toggle('active', i === currentIndex));
         }
     }
 
-    // Gestion du swipe (touch)
     let touchStartX = 0;
-    carousel.addEventListener('touchstart', (e) => {
-        touchStartX = e.changedTouches[0].screenX;
-    }, { passive: true });
-
-    carousel.addEventListener('touchend', (e) => {
-        const touchEndX = e.changedTouches[0].screenX;
-        const diff = touchStartX - touchEndX;
-        const swipeThreshold = 50;
-
-        if (Math.abs(diff) > swipeThreshold) {
-            if (diff > 0) {
-                showSlide(currentIndex + 1);
-            } else {
-                showSlide(currentIndex - 1);
-            }
-        }
+    carousel.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+    carousel.addEventListener('touchend', e => {
+        const diff = touchStartX - e.changedTouches[0].screenX;
+        if (Math.abs(diff) > 50) showSlide(currentIndex + (diff > 0 ? 1 : -1));
     });
 
-    // Gestion du clic sur les cartes
-    cards.forEach((card, index) => {
-        card.addEventListener('click', (e) => {
-            if (index === currentIndex) return;
-            e.preventDefault();
-            e.stopPropagation();
-            showSlide(index);
-        });
-    });
+    cards.forEach((card, index) => card.addEventListener('click', () => {
+        if (index !== currentIndex) showSlide(index);
+    }));
 
-    // Gestion de la synchronisation lors du défilement manuel du carrousel
     carousel.addEventListener('scroll', () => {
         clearTimeout(scrollSyncTimeout);
         scrollSyncTimeout = setTimeout(() => {
-            if (cards.length === 0) return;
             const currentScrollLeft = carousel.scrollLeft;
             let newBestIndex = 0;
             let minDiff = Infinity;
-
             cards.forEach((card, i) => {
-                const cardTargetScroll = card.offsetLeft - carousel.offsetLeft;
-                const diff = Math.abs(currentScrollLeft - cardTargetScroll);
+                const cardCenter = card.offsetLeft - carousel.offsetLeft + card.offsetWidth / 2;
+                const carouselCenter = currentScrollLeft + carousel.offsetWidth / 2;
+                const diff = Math.abs(carouselCenter - cardCenter);
                 if (diff < minDiff) {
                     minDiff = diff;
                     newBestIndex = i;
                 }
             });
-            
             if (newBestIndex !== currentIndex) {
                 currentIndex = newBestIndex;
                 cards.forEach((c, i) => c.classList.toggle('active', i === currentIndex));
                 if (dotsContainer) {
-                    Array.from(dotsContainer.children).forEach((dot, i) => {
-                        dot.classList.toggle('active', i === currentIndex);
-                    });
+                     Array.from(dotsContainer.children).forEach((dot, i) => dot.classList.toggle('active', i === currentIndex));
                 }
             }
-        }, 100);
+        }, 150);
     });
 
-    // Gestion des touches clavier (flèches gauche/droite)
-    carousel.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft') {
-            e.preventDefault(); // Empêche le défilement par défaut de la page
-            showSlide(currentIndex - 1);
-        } else if (e.key === 'ArrowRight') {
-            e.preventDefault(); // Empêche le défilement par défaut de la page
-            showSlide(currentIndex + 1);
-        }
+    carousel.addEventListener('keydown', e => {
+        if (e.key === 'ArrowLeft') { e.preventDefault(); showSlide(currentIndex - 1); }
+        if (e.key === 'ArrowRight') { e.preventDefault(); showSlide(currentIndex + 1); }
     });
-    
-    // Gestion du redimensionnement de la fenêtre
+
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-            if (cards.length > 0 && cards[currentIndex]) {
-                showSlide(currentIndex, false);
-            }
-        }, 200);
+        resizeTimeout = setTimeout(() => showSlide(currentIndex, false), 200);
     });
 
-    // Initialisation du carrousel
-    if (cards.length > 0) {
-        showSlide(currentIndex, false);
-    }
+    if (cards.length > 0) showSlide(0, false);
 }
 
 // -----------------------------------------------------
 // 7. FONCTIONS D'ANIMATION
 // -----------------------------------------------------
-/**
- * Animation cyclique du titre hero
- */
 function cycleHeroTitleText() {
     const titleTexts = document.querySelectorAll('.title-wrapper .title-text');
     if (titleTexts.length === 0) return;
-    
-    let current = 0;
-    
-    // Force la classe active sur le premier au chargement
-    titleTexts.forEach((el, i) => el.classList.remove('active'));
-    titleTexts[0].classList.add('active');
-    
+    let currentTextIndex = 0;
+
+    titleTexts.forEach(el => el.classList.remove('active', 'slide-up'));
+    if (titleTexts[currentTextIndex]) titleTexts[currentTextIndex].classList.add('active');
+
     setInterval(() => {
-        // Retire les classes actives et d'animation de l'actuel
-        titleTexts[current].classList.remove('active', 'slide-up');
-        
-        // Prépare le prochain index
-        current = (current + 1) % titleTexts.length;
-        
-        // Ajoute la classe d'animation avant d'activer
-        titleTexts[current].classList.add('slide-up');
-        
-        // Force le reflow pour que l'animation soit prise en compte même si la classe reste
-        void titleTexts[current].offsetWidth;
-        titleTexts[current].classList.add('active');
-        
-        // Retire la classe d'animation après la transition
-        setTimeout(() => {
-            titleTexts[current].classList.remove('slide-up');
-        }, 500);
+        if (!document.hidden) { 
+            if (titleTexts[currentTextIndex]) titleTexts[currentTextIndex].classList.remove('active');
+            currentTextIndex = (currentTextIndex + 1) % titleTexts.length;
+            if (titleTexts[currentTextIndex]) {
+                titleTexts[currentTextIndex].classList.add('slide-up');
+                void titleTexts[currentTextIndex].offsetWidth;
+                titleTexts[currentTextIndex].classList.add('active');
+                setTimeout(() => {
+                    if (titleTexts[currentTextIndex]) titleTexts[currentTextIndex].classList.remove('slide-up');
+                }, 500);
+            }
+        }
     }, 2500);
 }
 
-/**
- * Initialise l'effet de spotlight qui suit la souris
- */
 function initMouseSpotlight() {
     const spotlight = document.querySelector('.mouse-spotlight');
     if (!spotlight) return;
-    
-    let targetX = window.innerWidth / 2;
-    let targetY = window.innerHeight / 2;
-    let currentX = targetX;
-    let currentY = targetY;
 
-    document.addEventListener('mousemove', (e) => {
-        document.body.classList.add('spotlight-active');
-        targetX = e.clientX;
-        targetY = e.clientY;
-    });
-    
-    document.addEventListener('mouseleave', () => {
-        document.body.classList.remove('spotlight-active');
-    });
+    let targetX = window.innerWidth / 2, targetY = window.innerHeight / 2;
+    let currentX = targetX, currentY = targetY;
+    let animationFrameId = null;
 
-    function animateSpotlight() {
+    function moveSpotlight() {
         currentX += (targetX - currentX) * 0.15;
         currentY += (targetY - currentY) * 0.15;
-        spotlight.style.left = `${currentX}px`;
-        spotlight.style.top = `${currentY}px`;
-        requestAnimationFrame(animateSpotlight);
+        spotlight.style.transform = `translate(${currentX - spotlight.offsetWidth / 2}px, ${currentY - spotlight.offsetHeight / 2}px)`;
+        animationFrameId = requestAnimationFrame(moveSpotlight);
     }
     
-    animateSpotlight();
+    function startAnimation(e) {
+        targetX = e.clientX;
+        targetY = e.clientY;
+        document.body.classList.add('spotlight-active');
+        if (!animationFrameId) {
+            animationFrameId = requestAnimationFrame(moveSpotlight);
+        }
+    }
+
+    function stopAnimation() {
+        document.body.classList.remove('spotlight-active');
+        if (animationFrameId) {
+           cancelAnimationFrame(animationFrameId);
+           animationFrameId = null;
+        }
+    }
+
+    document.addEventListener('mousemove', startAnimation, { passive: true });
+    document.addEventListener('mouseleave', stopAnimation);
+    document.addEventListener('mouseenter', (e) => { // Reprendre si la souris revient et le corps a toujours la classe (ou si on veut la remettre)
+         if (document.body.classList.contains('spotlight-active')) { // Optionel: vérifier si la classe est tjrs là
+            startAnimation(e);
+         }
+    });
 }
 
+
 // -----------------------------------------------------
-// 8. FONCTIONS D'INITIALISATION
+// 8. FONCTIONS D'INITIALISATION SPÉCIFIQUES À MAIN.JS
 // -----------------------------------------------------
-/**
- * Initialise les composants principaux du site
- */
-function initMainComponents() {
-    initFeaturesCarousel();
-    initFAQ();
-    initMouseSpotlight();
-    initLanguageSystem();
-    
-    // Gestion des boutons de copie d'IP
+function initMainPageComponents() {
     if (copyIpButtons.length > 0) {
         copyIpButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const ip = button.getAttribute('data-ip');
-                copyToClipboard(ip);
+                if (ip) copyToClipboard(ip);
+                else console.warn('data-ip manquant sur le bouton de copie.');
             });
         });
     }
 }
 
-/**
- * Gestion du thème du site
- */
-function initThemeHandler() {
+function initThemeHandler() { // Cette fonction est appelée par DOMContentLoaded ci-dessous
     const html = document.documentElement;
-    function updateHeaderThemeClass() {
+    function updateHeaderThemeClassBasedOnGlobalTheme() {
         if (!header) return;
-
-        if (html.classList.contains('light-theme')) {
-            header.classList.add('light-theme');
-        } else {
-            header.classList.remove('light-theme');
-        }
+        header.classList.toggle('light-theme', html.classList.contains('light-theme'));
     }
-
-    // Écouter l'événement personnalisé themeChanged émis par common.js
-    document.addEventListener('themeChanged', (e) => {
-        console.log('themeChanged event received in main.js:', e.detail.theme);
-        updateHeaderThemeClass();
-    });
-
-    // Initialisation du style du header en fonction du thème initial
-    updateHeaderThemeClass();
+    document.addEventListener('themeChanged', updateHeaderThemeClassBasedOnGlobalTheme);
+    updateHeaderThemeClassBasedOnGlobalTheme(); 
 }
 
 // -----------------------------------------------------
 // 9. ÉVÉNEMENT DE CHARGEMENT PRINCIPAL
 // -----------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
-    // Animation du titre hero
     cycleHeroTitleText();
+    initMouseSpotlight(); 
 
-    // Suppression du loader s'il existe
     if (loader) {
         setTimeout(() => {
             loader.style.opacity = '0';
-            setTimeout(() => loader.style.display = 'none', 500);
-        }, 1000);
+            setTimeout(() => loader.style.display = 'none', 500); 
+        }, 1000); 
     }
 
-    // Initialisation des composants principaux
-    initMainComponents();
-    
-    // Gestion du thème
-    initThemeHandler();
+    // initTheme est dans common.js et s'exécute sur son propre DOMContentLoaded.
+    // initLanguageSystem utilise `updateLanguage` qui est défini dans ce fichier.
+    initLanguageSystem(); 
+    initThemeHandler();   // Gère la classe du header basée sur le thème global (modifié par common.js)
 
-    // Gestion du comportement de la navbar au scroll
+    initFeaturesCarousel();
+    initFAQ();
+    initMainPageComponents(); 
+
     if (header || backToTop) {
         window.addEventListener('scroll', () => {
             if (header) header.classList.toggle('scrolled', window.scrollY > 50);
@@ -460,20 +375,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Gestion de l'état actif des liens de navigation
     if (navLinks.length > 0) {
         navLinks.forEach(link => {
-            link.addEventListener('click', () => {
+            link.addEventListener('click', () => { 
                 navLinks.forEach(l => l.classList.remove('active'));
                 link.classList.add('active');
             });
         });
     }
 
-    // Gestion du bouton "retour en haut"
     if (backToTop) {
-        backToTop.addEventListener('click', () => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
+        backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
     }
 });

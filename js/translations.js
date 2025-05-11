@@ -5,6 +5,7 @@ const translations = {
         'nav-features': 'Features',
         'nav-faq': 'FAQ',
         'nav-join': 'Join',
+        'nav-stats': 'Stats',
         
         // Hero Section
         'hero-title-main': 'A Minecraft server',
@@ -83,6 +84,7 @@ const translations = {
         'nav-features': 'Fonctionnalités',
         'nav-faq': 'FAQ',
         'nav-join': 'Rejoindre',
+        'nav-stats': 'Stats',
         
         // Hero Section
         'hero-title-main': 'Un serveur Minecraft',
@@ -161,6 +163,7 @@ const translations = {
         'nav-features': 'Características',
         'nav-faq': 'Preguntas frecuentes',
         'nav-join': 'Unirse',
+        'nav-stats': 'Estadísticas',
        
         // Hero Section
         'hero-title-main': 'Un servidor de Minecraft',
@@ -239,6 +242,7 @@ const translations = {
         'nav-features': 'Funktionen',
         'nav-faq': 'FAQ',
         'nav-join': 'Beitreten',
+        'nav-stats': 'Statistiken',
        
         // Hero Section
         'hero-title-main': 'Ein Minecraft-Server',
@@ -317,6 +321,7 @@ const translations = {
         'nav-features': 'Caracteristici',
         'nav-faq': 'Întrebări frecvente',
         'nav-join': 'Alătură-te',
+        'nav-stats': 'Statistici',
        
         // Hero Section
         'hero-title-main': 'Un server de Minecraft',
@@ -395,6 +400,7 @@ const translations = {
         'nav-features': 'Особенности',
         'nav-faq': 'Вопросы и ответы',
         'nav-join': 'Присоединиться',
+        'nav-stats': 'Статистика',
        
         // Hero Section
         'hero-title-main': 'Сервер Minecraft',
@@ -473,6 +479,7 @@ const translations = {
         'nav-features': '特色',
         'nav-faq': '常见问题',
         'nav-join': '加入',
+        'nav-stats': '统计信息',
        
         // Hero Section
         'hero-title-main': 'Minecraft 服务器',

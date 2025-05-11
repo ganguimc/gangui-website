@@ -27,120 +27,89 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 // -----------------------------------------------------
-// 2. INITIALISATION DES COMPOSANTS
+// 2. INITIALISATION DES COMPOSANTS (après chargement dynamique)
 // -----------------------------------------------------
 
 /**
- * Fonction principale d'initialisation des composants
- * Appelle toutes les sous-fonctions d'initialisation
+ * Fonction principale d'initialisation des fonctionnalités des composants (header, footer).
  */
 function initComponents() {
-    // Chargement des préférences utilisateur (principalement la langue ici, le thème est géré par common.js)
-    initSavedPreferences();
-    
-    // Initialisation des contrôleurs d'interface
-    initThemeToggle(); // S'assure que le bouton du header (chargé dynamiquement) fonctionne
-    initLanguageSelector();
-    initBackToTopButton();
+    // Le thème est initialisé par js/common.js (SiteManager.theme.init)
+    // La langue est initialisée par js/main.js (initLanguageSystem)
+    // initSavedPreferences ici ne devrait pas toucher ni au thème ni à la langue initiale.
+
+    // Attacher les listeners pour les éléments des composants chargés dynamiquement
+    initThemeToggle();      // Pour le bouton de thème dans le header
+    initLanguageSelector(); // Pour le sélecteur de langue dans le header
+    initBackToTopButton();  // Pour le bouton back-to-top (peut-être dans le footer ou global)
 }
 
 // -----------------------------------------------------
-// 3. GESTION DES PRÉFÉRENCES UTILISATEUR
+// 3. GESTION DES PRÉFÉRENCES UTILISATEUR (Vide ou pour d_autres préférences)
 // -----------------------------------------------------
 
 /**
- * Initialise les préférences sauvegardées (principalement la langue)
- * Le thème est initialisé par js/common.js
+ * Initialise les préférences sauvegardées spécifiques aux composants (s'il y en a).
+ * Thème et Langue sont gérés globalement par common.js et main.js respectivement.
  */
 function initSavedPreferences() {
-    // La partie thème est maintenant gérée par SiteManager.theme.init() dans js/common.js
-    // qui s'exécute déjà sur DOMContentLoaded.
-    
-    // Initialiser la langue sauvegardée
-    const savedLang = localStorage.getItem('language');
-    if (savedLang) {
-        // Assurez-vous que la fonction updateLanguage est bien définie et fonctionnelle.
-        // Cette version de updateLanguage est un stub dans le code fourni de components.js
-        // Sa véritable implémentation pourrait être dans translations.js ou common.js/main.js
-        if (typeof updateLanguage === "function") {
-            updateLanguage(savedLang);
-        } else if (SiteManager && SiteManager.language && typeof SiteManager.language.update === "function") {
-            SiteManager.language.update(savedLang); // Si géré par common.js
-        } else if (typeof mainUpdateLanguage === "function") { // Placeholder si c'est dans main.js
-            mainUpdateLanguage(savedLang);
-        } else {
-            console.warn('La fonction updateLanguage n\'est pas trouvée pour initSavedPreferences.');
-        }
-    } else {
-        // Langue par défaut
-        if (typeof updateLanguage === "function") {
-            updateLanguage('en');
-        } else if (SiteManager && SiteManager.language && typeof SiteManager.language.update === "function") {
-            SiteManager.language.update('en');
-        } else if (typeof mainUpdateLanguage === "function") {
-            mainUpdateLanguage('en');
-        } else {
-            console.warn('La fonction updateLanguage n\'est pas trouvée pour la langue par défaut.');
-        }
-    }
+    // Vide pour l_instant, car thème et langue sont gérés ailleurs.
+    // Si vous aviez d_autres préférences spécifiques aux composants, elles iraient ici.
+    // console.log("initSavedPreferences dans components.js - ne fait rien pour thème/langue");
 }
 
 // -----------------------------------------------------
-// 4. CONTRÔLEURS D'INTERFACE
+// 4. CONTRÔLEURS D'INTERFACE DES COMPOSANTS
 // -----------------------------------------------------
 
 /**
- * Initialise le bouton de changement de thème.
- * Le bouton est dans le header chargé dynamiquement.
- * Cette fonction RELIE le bouton à la logique de toggle de js/common.js.
+ * Initialise le bouton de changement de thème (dans le header dynamique).
+ * Il appelle SiteManager.theme.toggle() de js/common.js.
  */
 function initThemeToggle() {
-    const themeToggle = document.querySelector('.theme-toggle');
+    const themeToggle = document.querySelector('.theme-toggle'); // Devrait exister après chargement du header
     if (themeToggle) {
         themeToggle.addEventListener('click', () => {
-            // Appelle la fonction centralisée de js/common.js
-            if (SiteManager && SiteManager.theme && typeof SiteManager.theme.toggle === "function") {
+            if (typeof SiteManager !== 'undefined' && SiteManager.theme && SiteManager.theme.toggle) {
                 SiteManager.theme.toggle();
             } else {
-                console.error('SiteManager.theme.toggle non trouvée. Assurez-vous que common.js est chargé avant et correctement.');
+                console.error('SiteManager.theme.toggle non trouvée. Assurez-vous que common.js est chargé.');
             }
         });
     } else {
-        console.warn('Bouton theme-toggle non trouvé après chargement des composants.');
+        // Ce message peut apparaître si initComponents est appelé avant que le header soit réellement dans le DOM.
+        // console.warn('Bouton .theme-toggle non trouvé lors de initComponents.');
     }
 }
 
 /**
- * Initialise le sélecteur de langue
+ * Initialise le sélecteur de langue (dans le header dynamique).
+ * Appelle la fonction globale updateLanguage(lang) de js/main.js.
  */
 function initLanguageSelector() {
     const langDropdownBtn = document.getElementById('langDropdownBtn');
-    const langDropdownMenu = document.getElementById('langDropdownMenu');
-    const langOptions = document.querySelectorAll('.lang-option');
-    const langCurrentSpan = langDropdownBtn ? langDropdownBtn.querySelector('.lang-current') : null;
-
+    const langDropdownMenu = document.getElementById('langDropdownMenu'); // Le conteneur des options
+    
     if (langDropdownBtn && langDropdownMenu) {
-        // Ouvrir/fermer le menu déroulant
+        const langOptions = langDropdownMenu.querySelectorAll('.lang-option'); // Sélectionner les options À L'INTÉRIEUR du menu
+        // const langCurrentSpan = langDropdownBtn.querySelector('.lang-current'); // updateLanguage dans main.js s_en occupe
+
         langDropdownBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            // Minor toggle logic for visibility of dropdown itself might conflict if main.js also targets this.
-            // Assuming this is the primary controller for this specific dropdown.
             const parentDropdown = langDropdownBtn.closest('.lang-dropdown');
             if (parentDropdown) {
                 parentDropdown.classList.toggle('open');
-            } else {
-                 langDropdownMenu.classList.toggle('show'); // Fallback si structure un peu différente
+            } else { // Fallback si la structure HTML change
+                langDropdownMenu.classList.toggle('show');
             }
         });
         
-        // Fermer le menu quand on clique ailleurs
         document.addEventListener('click', (e) => {
             const parentDropdown = langDropdownBtn.closest('.lang-dropdown');
             let isClickInside = false;
             if (parentDropdown) {
                 isClickInside = parentDropdown.contains(e.target);
             } else {
-                // Fallback if structure is simpler
                 isClickInside = langDropdownBtn.contains(e.target) || langDropdownMenu.contains(e.target);
             }
 
@@ -153,78 +122,47 @@ function initLanguageSelector() {
             }
         });
         
-        // Gestion du changement de langue
         langOptions.forEach(option => {
             option.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const lang = option.getAttribute('data-lang');
                 
-                // Appeler la fonction de mise à jour de langue appropriée
-                if (typeof updateLanguage === "function") {
-                    updateLanguage(lang);
-                } else if (SiteManager && SiteManager.language && typeof SiteManager.language.update === "function") {
-                    SiteManager.language.update(lang);
-                } else if (typeof mainUpdateLanguage === "function") { // Placeholder
-                     mainUpdateLanguage(lang);
+                if (typeof updateLanguage === "function") { // Appelle la fonction globale de main.js
+                    updateLanguage(lang); // updateLanguage s_occupe de la sauvegarde et de la mise à jour du span .lang-current
                 } else {
-                    console.warn('Fonction updateLanguage non trouvée pour le changement de langue.');
-                }
-
-                if (langCurrentSpan) {
-                    langCurrentSpan.textContent = option.textContent;
+                    console.error('Fonction globale updateLanguage(lang) non trouvée (devrait être dans main.js).');
                 }
                 
                 const parentDropdown = langDropdownBtn.closest('.lang-dropdown');
-                if (parentDropdown) {
+                 if (parentDropdown) {
                     parentDropdown.classList.remove('open');
                 } else {
                     langDropdownMenu.classList.remove('show');
                 }
             });
         });
+    } else {
+        // console.warn("Sélecteur de langue (#langDropdownBtn ou #langDropdownMenu) non trouvé.");
     }
 }
 
 /**
- * Initialise le bouton "Retour en haut"
+ * Initialise le bouton "Retour en haut" (dans le footer dynamique ou global).
  */
 function initBackToTopButton() {
     const backToTop = document.querySelector('.back-to-top');
     if (backToTop) {
-        // Afficher/masquer selon la position de défilement
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) {
-                backToTop.classList.add('visible');
-            } else {
-                backToTop.classList.remove('visible');
-            }
+            backToTop.classList.toggle('visible', window.scrollY > 300);
         });
         
-        // Action de défilement vers le haut
         backToTop.addEventListener('click', () => {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         });
     }
 }
 
 // -----------------------------------------------------
-// 5. UTILITAIRES
+// 5. UTILITAIRES (La fonction updateLanguage globale est dans main.js)
 // -----------------------------------------------------
-
-/**
- * Met à jour la langue de l'interface
- * @param {string} lang - Code de langue (ex: 'fr', 'en')
- */
-function updateLanguage(lang) {
-    // Note: Cette fonction est appelée mais non définie dans le code original
-    // Implémentation à compléter selon les besoins
-    
-    // Sauvegarde de la préférence
-    localStorage.setItem('language', lang);
-    
-    // La logique pour changer le contenu selon la langue devrait être ajoutée ici
-    console.log(`Langue changée pour: ${lang}`);
-}
+// Stub de updateLanguage supprimé car la fonction globale est maintenant dans main.js
