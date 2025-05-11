@@ -2,31 +2,32 @@
 :root {
     --primary: #fc8b4f;
     --primary-dark: #dd612f;
+    
+    /* Variables par défaut pour le thème sombre */
     --text-primary: #ffffff;
     --text-secondary: #b0b0b0;
     --text-muted: #707070;
-    --bg-dark: #111014;    /* Utilisé pour body en dark theme */
-    --bg-darker: #18171b; /* Utilisé pour Features bg, Footer bg, Lang Menu bg (dark) */
-    --bg-light: #23222a;   /* Utilisé pour btn bg, feature cards, join steps, FAQ item active bg */
-    --bg-lighter: #1a1a1f; /* Utilisé pour server-ip bg (ancien hero), footer border */
-    --border-radius: 8px;
+    --bg-dark: #111014;
+    --bg-darker: #18171b;
+    --bg-light: #23222a;
+    --bg-lighter: #1a1a1f;
     --box-shadow: 0 8px 16px rgba(0, 0, 0, 0.18);
+
+    --border-radius: 8px;
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --font-primary: 'Poppins', sans-serif;
 }
 
 /* Variables pour le Thème Clair */
-:root[data-theme='light'] {
-    --primary: #fc8b4f; /* Reste souvent identique */
-    --primary-dark: #dd612f;
-    --text-primary: #18171b; /* Texte principal devient sombre */
+.light-theme {
+    --text-primary: #18171b;
     --text-secondary: #444444;
     --text-muted: #888888;
-    --bg-dark: #f7f7fa;     /* Fond principal du body en light theme */
-    --bg-darker: #f0f0f3;  /* Features bg, Footer bg, Lang Menu bg (light) */
-    --bg-light: #ffffff;    /* btn bg, feature cards, join steps, FAQ item active bg */
-    --bg-lighter: #f7f7fa;  /* server-ip bg (ancien hero), footer border */
-    --box-shadow: 0 8px 16px rgba(0,0,0,0.08); /* Ombre plus légère */
+    --bg-dark: #f7f7fa;
+    --bg-darker: #f0f0f3;
+    --bg-light: #ffffff;
+    --bg-lighter: #f7f7fa;
+    --box-shadow: 0 8px 16px rgba(0,0,0,0.08);
 }
 
 /* ==========================================================================
@@ -167,37 +168,37 @@ button {
 }
 
 /* Styles light theme pour Boutons Globaux */
-:root[data-theme='light'] .btn {
+.light-theme .btn {
     background: var(--bg-light); /* #fff en light */
     color: var(--text-primary); /* Texte sombre en light */
 }
-:root[data-theme='light'] .btn:hover {
+.light-theme .btn:hover {
     border-color: var(--primary);
     color: var(--primary);
     /* background: var(--bg-light); conservé */
 }
-:root[data-theme='light'] .btn-primary {
+.light-theme .btn-primary {
     background: var(--primary);
     color: #fff; /* Texte blanc sur fond primaire */
 }
-:root[data-theme='light'] .btn-primary:hover {
+.light-theme .btn-primary:hover {
     background: var(--primary-dark);
     color: #fff;
 }
 /* .btn-discord a sa propre couleur de fond, texte blanc ok */
-:root[data-theme='light'] .btn-discord { 
+.light-theme .btn-discord { 
     color: #5865F2;
     border: 1.5px solid #919afd; /* Bordure légère pour définition */
 }
 
-:root[data-theme='light'] .btn-secondary,
-:root[data-theme='light'] .btn-dark {
+.light-theme .btn-secondary,
+.light-theme .btn-dark {
     background: var(--bg-light); /* #fff en light */
     color: var(--text-primary); /* Texte sombre */
     border: 1.5px solid #e0e0e0; /* Bordure légère pour définition */
 }
-:root[data-theme='light'] .btn-secondary:hover,
-:root[data-theme='light'] .btn-dark:hover {
+.light-theme .btn-secondary:hover,
+.light-theme .btn-dark:hover {
     color: var(--primary);
     border-color: var(--primary); /* La bordure devient primaire */
 }
@@ -338,34 +339,34 @@ button {
 }
 
 /* Styles Hero pour le thème clair */
-:root[data-theme='light'] .hero {
+.light-theme .hero {
     background: var(--bg-dark); /* #f7f7fa en light, ancien `!important` retiré si possible */
     color: var(--text-primary); /* #18171b en light */
 }
 
-:root[data-theme='light'] .hero .hero-title, 
-:root[data-theme='light'] .hero .hero-brand {
+.light-theme .hero .hero-title, 
+.light-theme .hero .hero-brand {
     text-shadow: 
         0 0 10px rgba(252, 139, 79, 0.5),
         0 0 20px rgba(252, 139, 79, 0.3),
         0 0 30px rgba(252, 79, 79, 0.2);
 }
 
-:root[data-theme='light'] .hero .hero-desc, 
-:root[data-theme='light'] .hero .title-text {
+.light-theme .hero .hero-desc, 
+.light-theme .hero .title-text {
     color: var(--text-primary) !important; /* Important pour surcharger la couleur de base */
     text-shadow: none; /* Optionnel: enlever l'ombre en thème clair */
 }
 
 /* Styles light pour les boutons spécifiques du Hero */
-:root[data-theme='light'] .hero .btn-secondary,
-:root[data-theme='light'] .hero .btn-dark {
+.light-theme .hero .btn-secondary,
+.light-theme .hero .btn-dark {
     background: var(--bg-light); /* #fff en light */
     color: var(--text-primary); /* Texte sombre */
     border: 1.5px solid #e0e0e0; /* Bordure pour définition */
 }
-:root[data-theme='light'] .hero .btn-secondary:hover,
-:root[data-theme='light'] .hero .btn-dark:hover {
+.light-theme .hero .btn-secondary:hover,
+.light-theme .hero .btn-dark:hover {
     color: var(--primary);
     border-color: var(--primary); /* La bordure devient primaire */
 }
@@ -557,13 +558,13 @@ button {
 }
 
 /* Styles light theme pour Features */
-:root[data-theme='light'] .feature-card,
-:root[data-theme='light'] .feature-card.active { /* Ombre douce pour light theme */
+.light-theme .feature-card,
+.light-theme .feature-card.active { /* Ombre douce pour light theme */
     box-shadow: 0 8px 32px rgba(0,0,0,0.08) !important; /* important pour surcharger l'ombre de base */
 }
-:root[data-theme='light'] .feature-card::before { /* Ajuster le gradient pour light theme */
-    background: linear-gradient(135deg, rgba(var(--primary-rgb, 252,139,79),0.08), rgba(0,0,0,0.03));
-    /* Note: --primary-rgb devrait être défini si vous voulez utiliser rgba avec une variable de couleur hex */
+.light-theme .feature-card::before { /* Ajuster le gradient pour light theme */
+    background: linear-gradient(135deg, rgba(252,139,79,0.08), rgba(0,0,0,0.03));
+    /* Note: --primary-rgb n'est pas défini, utilisation directe des valeurs RGB pour la couleur primaire */
 }
 
 @media (max-width: 768px) {

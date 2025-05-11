@@ -238,23 +238,19 @@
 }
 
 /* Styles pour le Thème Clair */
-:root[data-theme='light'] .player-profile {
+.light-theme .player-profile {
     box-shadow: 0 8px 32px rgba(0,0,0,0.08);  
 }
 
-:root[data-theme='light'] .player-profile::before {
+.light-theme .player-profile::before {
     background: linear-gradient(135deg, rgba(252, 139, 79, 0.08), rgba(0, 0, 0, 0.03));
 }
 
-:root[data-theme='light'] .player-avatar {
-/*    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); */
-}
-
-:root[data-theme='light'] .player-role {
+.light-theme .player-role {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 
-:root[data-theme='light'] .player-uuid {
+.light-theme .player-uuid {
     background: var(--bg-lighter);
 }
 

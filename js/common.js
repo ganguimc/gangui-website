@@ -92,10 +92,18 @@ SiteManager.theme.init = function() {
     const themeToggle = document.querySelector('.theme-toggle');
     const html = document.documentElement;
     
-    // Récupère le thème sauvegardé ou utilise le thème par défaut
-    const savedTheme = SiteManager.storage.get('theme', DEFAULT_THEME);
-    console.log('Thème chargé:', savedTheme);
-    html.setAttribute('data-theme', savedTheme);
+    // Récupère le thème sauvegardé ou utilise le thème par défaut ('dark' ou 'light')
+    let savedTheme = SiteManager.storage.get('theme', DEFAULT_THEME); // DEFAULT_THEME should be 'dark' or 'light'
+    console.log('Thème initial chargé:', savedTheme);
+
+    // S'assurer que savedTheme est soit 'light' soit 'dark'
+    if (savedTheme !== 'light' && savedTheme !== 'dark') {
+        savedTheme = DEFAULT_THEME;
+    }
+
+    // Nettoyer les anciennes classes de thème et appliquer la nouvelle
+    html.classList.remove('dark-theme', 'light-theme');
+    html.classList.add(savedTheme + '-theme');
     
     // Gestion du bouton de changement de thème
     if (themeToggle) {
@@ -110,16 +118,24 @@ SiteManager.theme.init = function() {
  */
 SiteManager.theme.toggle = function() {
     const html = document.documentElement;
-    const currentTheme = html.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    let newTheme;
+
+    if (html.classList.contains('dark-theme')) {
+        newTheme = 'light';
+        html.classList.remove('dark-theme');
+        html.classList.add('light-theme');
+    } else {
+        newTheme = 'dark';
+        html.classList.remove('light-theme');
+        html.classList.add('dark-theme');
+    }
     
-    console.log('Changement de thème:', newTheme);
-    html.setAttribute('data-theme', newTheme);
-    SiteManager.storage.save('theme', newTheme);
+    console.log('Changement de thème vers:', newTheme);
+    SiteManager.storage.save('theme', newTheme); // Sauvegarde 'dark' ou 'light'
     
     // Émettre un événement personnalisé pour le changement de thème
     document.dispatchEvent(new CustomEvent('themeChanged', { 
-        detail: { theme: newTheme } 
+        detail: { theme: newTheme } // 'dark' ou 'light'
     }));
 };
 

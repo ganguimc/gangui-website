@@ -410,26 +410,25 @@ function initMainComponents() {
  * Gestion du thème du site
  */
 function initThemeHandler() {
-    function updateTheme() {
-        const theme = document.documentElement.getAttribute('data-theme');
-        
+    const html = document.documentElement;
+    function updateHeaderThemeClass() {
         if (!header) return;
-        if (theme === 'light') {
+
+        if (html.classList.contains('light-theme')) {
             header.classList.add('light-theme');
         } else {
             header.classList.remove('light-theme');
         }
     }
 
-    // Observer pour les changements de thème
-    const themeObserver = new MutationObserver(updateTheme);
-    themeObserver.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ['data-theme']
+    // Écouter l'événement personnalisé themeChanged émis par common.js
+    document.addEventListener('themeChanged', (e) => {
+        console.log('themeChanged event received in main.js:', e.detail.theme);
+        updateHeaderThemeClass();
     });
 
-    // Initialisation du thème
-    updateTheme();
+    // Initialisation du style du header en fonction du thème initial
+    updateHeaderThemeClass();
 }
 
 // -----------------------------------------------------

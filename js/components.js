@@ -35,11 +35,11 @@ document.addEventListener('DOMContentLoaded', async function() {
  * Appelle toutes les sous-fonctions d'initialisation
  */
 function initComponents() {
-    // Chargement des préférences utilisateur
+    // Chargement des préférences utilisateur (principalement la langue ici, le thème est géré par common.js)
     initSavedPreferences();
     
     // Initialisation des contrôleurs d'interface
-    initThemeToggle();
+    initThemeToggle(); // S'assure que le bouton du header (chargé dynamiquement) fonctionne
     initLanguageSelector();
     initBackToTopButton();
 }
@@ -49,22 +49,39 @@ function initComponents() {
 // -----------------------------------------------------
 
 /**
- * Initialise les préférences sauvegardées (thème, langue)
+ * Initialise les préférences sauvegardées (principalement la langue)
+ * Le thème est initialisé par js/common.js
  */
 function initSavedPreferences() {
-    // Initialiser le thème sauvegardé
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-        document.documentElement.setAttribute('data-theme', savedTheme);
-    }
+    // La partie thème est maintenant gérée par SiteManager.theme.init() dans js/common.js
+    // qui s'exécute déjà sur DOMContentLoaded.
     
     // Initialiser la langue sauvegardée
     const savedLang = localStorage.getItem('language');
     if (savedLang) {
-        updateLanguage(savedLang);
+        // Assurez-vous que la fonction updateLanguage est bien définie et fonctionnelle.
+        // Cette version de updateLanguage est un stub dans le code fourni de components.js
+        // Sa véritable implémentation pourrait être dans translations.js ou common.js/main.js
+        if (typeof updateLanguage === "function") {
+            updateLanguage(savedLang);
+        } else if (SiteManager && SiteManager.language && typeof SiteManager.language.update === "function") {
+            SiteManager.language.update(savedLang); // Si géré par common.js
+        } else if (typeof mainUpdateLanguage === "function") { // Placeholder si c'est dans main.js
+            mainUpdateLanguage(savedLang);
+        } else {
+            console.warn('La fonction updateLanguage n\'est pas trouvée pour initSavedPreferences.');
+        }
     } else {
         // Langue par défaut
-        updateLanguage('en');
+        if (typeof updateLanguage === "function") {
+            updateLanguage('en');
+        } else if (SiteManager && SiteManager.language && typeof SiteManager.language.update === "function") {
+            SiteManager.language.update('en');
+        } else if (typeof mainUpdateLanguage === "function") {
+            mainUpdateLanguage('en');
+        } else {
+            console.warn('La fonction updateLanguage n\'est pas trouvée pour la langue par défaut.');
+        }
     }
 }
 
@@ -73,18 +90,23 @@ function initSavedPreferences() {
 // -----------------------------------------------------
 
 /**
- * Initialise le bouton de changement de thème
+ * Initialise le bouton de changement de thème.
+ * Le bouton est dans le header chargé dynamiquement.
+ * Cette fonction RELIE le bouton à la logique de toggle de js/common.js.
  */
 function initThemeToggle() {
     const themeToggle = document.querySelector('.theme-toggle');
     if (themeToggle) {
         themeToggle.addEventListener('click', () => {
-            const html = document.documentElement;
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
+            // Appelle la fonction centralisée de js/common.js
+            if (SiteManager && SiteManager.theme && typeof SiteManager.theme.toggle === "function") {
+                SiteManager.theme.toggle();
+            } else {
+                console.error('SiteManager.theme.toggle non trouvée. Assurez-vous que common.js est chargé avant et correctement.');
+            }
         });
+    } else {
+        console.warn('Bouton theme-toggle non trouvé après chargement des composants.');
     }
 }
 
@@ -95,18 +117,39 @@ function initLanguageSelector() {
     const langDropdownBtn = document.getElementById('langDropdownBtn');
     const langDropdownMenu = document.getElementById('langDropdownMenu');
     const langOptions = document.querySelectorAll('.lang-option');
-    
+    const langCurrentSpan = langDropdownBtn ? langDropdownBtn.querySelector('.lang-current') : null;
+
     if (langDropdownBtn && langDropdownMenu) {
         // Ouvrir/fermer le menu déroulant
         langDropdownBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            langDropdownMenu.classList.toggle('show');
+            // Minor toggle logic for visibility of dropdown itself might conflict if main.js also targets this.
+            // Assuming this is the primary controller for this specific dropdown.
+            const parentDropdown = langDropdownBtn.closest('.lang-dropdown');
+            if (parentDropdown) {
+                parentDropdown.classList.toggle('open');
+            } else {
+                 langDropdownMenu.classList.toggle('show'); // Fallback si structure un peu différente
+            }
         });
         
         // Fermer le menu quand on clique ailleurs
         document.addEventListener('click', (e) => {
-            if (!langDropdownBtn.contains(e.target) && !langDropdownMenu.contains(e.target)) {
-                langDropdownMenu.classList.remove('show');
+            const parentDropdown = langDropdownBtn.closest('.lang-dropdown');
+            let isClickInside = false;
+            if (parentDropdown) {
+                isClickInside = parentDropdown.contains(e.target);
+            } else {
+                // Fallback if structure is simpler
+                isClickInside = langDropdownBtn.contains(e.target) || langDropdownMenu.contains(e.target);
+            }
+
+            if (!isClickInside) {
+                if (parentDropdown) {
+                    parentDropdown.classList.remove('open');
+                } else {
+                    langDropdownMenu.classList.remove('show');
+                }
             }
         });
         
@@ -115,8 +158,28 @@ function initLanguageSelector() {
             option.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const lang = option.getAttribute('data-lang');
-                updateLanguage(lang);
-                langDropdownMenu.classList.remove('show');
+                
+                // Appeler la fonction de mise à jour de langue appropriée
+                if (typeof updateLanguage === "function") {
+                    updateLanguage(lang);
+                } else if (SiteManager && SiteManager.language && typeof SiteManager.language.update === "function") {
+                    SiteManager.language.update(lang);
+                } else if (typeof mainUpdateLanguage === "function") { // Placeholder
+                     mainUpdateLanguage(lang);
+                } else {
+                    console.warn('Fonction updateLanguage non trouvée pour le changement de langue.');
+                }
+
+                if (langCurrentSpan) {
+                    langCurrentSpan.textContent = option.textContent;
+                }
+                
+                const parentDropdown = langDropdownBtn.closest('.lang-dropdown');
+                if (parentDropdown) {
+                    parentDropdown.classList.remove('open');
+                } else {
+                    langDropdownMenu.classList.remove('show');
+                }
             });
         });
     }
