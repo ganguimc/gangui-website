@@ -44,7 +44,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(252, 139, 79, 0.08), rgba(200, 200, 200, 0.08));
+    background: linear-gradient(135deg, rgba(252, 139, 79, 0.08), rgba(0, 0, 0, 0.03));
     z-index: 1;
     transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -238,6 +238,17 @@
 }
 
 /* Styles pour le Thème Clair */
+
+.light-theme #player-search-input {
+    border-color: #e0e0e0; 
+    background-color: #fff; 
+    color: var(--text-primary);
+}
+
+.light-theme #player-search-input:focus {
+    border-color: var(--primary);
+}
+
 .light-theme .player-profile {
     box-shadow: 0 8px 32px rgba(0,0,0,0.08);  
 }
@@ -366,7 +377,7 @@
 
 #player-search-input {
     flex-grow: 1;
-    padding: 0.85rem 1.1rem;
+    padding: 1rem 1rem;
     border-radius: var(--border-radius);
     border: 1.5px solid var(--bg-lighter);
     background-color: var(--bg-darker); 
@@ -383,17 +394,7 @@
 
 /* Vous aurez besoin de définir --primary-rgb dans :root si ce n'est pas déjà fait, ex: --primary-rgb: 252,139,79; */
 
-.light-theme #player-search-input {
-    border-color: #e0e0e0; 
-    background-color: #fff; 
-    color: var(--text-primary);
-}
-
-.light-theme #player-search-input:focus {
-    border-color: var(--primary);
-}
-
-#player-search-button {
+#player-search-btn {
     white-space: nowrap; /* Empêche le texte du bouton de passer à la ligne */
 }
 
@@ -455,7 +456,7 @@
 
 /* S'assurer que le conteneur de profil est flex pour que le loading et content s'alternent bien */
 #player-stats-display-section {
-    /* display: flex; /* Ou grid, selon comment vous voulez gérer loading vs content */
+    display: flex; /* Ou grid, selon comment vous voulez gérer loading vs content */
     /* flex-direction: column; */
     /* align-items: center; */
 }
