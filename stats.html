@@ -20,39 +20,56 @@
     <!-- Player Stats Section -->
     <section id="player-stats" class="player-stats">
         <div class="container stats-container">
-            <div class="player-profile">
-                <div class="player-avatar">
-                    <img src="img/player-skin.png" alt="Player skin" id="player-avatar-img">
+
+            <!-- Barre de recherche de joueur -->
+            <div class="player-search-container" id="player-search-section">
+                <input type="text" id="player-search-input" placeholder="Enter player name or UUID..." aria-label="Player search input">
+                <button id="player-search-button" class="btn btn-primary" aria-label="Search player">
+                    <i class="fas fa-search"></i> <span data-lang="stats-search-button">Search</span>
+                </button>
+            </div>
+            <div id="search-message" class="search-message" style="display: none;"></div>
+
+            <!-- Section d'affichage des stats (apparaît après recherche valide) -->
+            <div id="player-stats-display-section" style="display: none;">
+                <div id="player-profile-loading" style="display: none;">
+                    <p data-lang="stats-loading">Loading player data...</p>
+                    <!-- Vous pourriez ajouter un spinner/loader CSS ici -->
                 </div>
-                
-                <div class="player-info">
-                    <div class="player-role-container">
-                        <span class="player-role admin">ADMIN</span>
-                        <h1 class="player-username">Gangui</h1>
-                    <!--     <span class="player-status online"></span>  -->
-                        <span class="player-status offline"></span>
+                <div class="player-profile" id="player-profile-content" style="display: none;"> <!-- Caché initialement -->
+                    <div class="player-avatar" id="player-skin-viewer-container">
+                        <!-- Le rendu 3D du skin sera injecté ici par JavaScript -->
                     </div>
                     
-                    <div class="player-uuid">
-                        <span>UUID</span>
-                        <span id="player-uuid-value">674ba97b64fe47c1aaf2000a01d0037e</span>
-                    </div>
-                    
-                    <div class="player-stats-basic">
-                        <div class="stats-item">
-                            <span class="stats-date">02/30/2023</span>
-                            <span class="stats-label">First seen</span>
+                    <div class="player-info">
+                        <div class="player-role-container">
+                            <span class="player-role" id="player-role">ROLE</span> <!-- ID ajouté -->
+                            <h1 class="player-username" id="player-username">Username</h1> <!-- ID ajouté -->
+                            <span class="player-status" id="player-status-indicator" title=""></span> <!-- ID et title ajouté -->
                         </div>
                         
-                        <div class="stats-item">
-                            <span class="stats-date">02/30/2025</span>
-                            <span class="stats-label">Last seen</span>
+                        <div class="player-uuid">
+                            <span data-lang="stats-uuid-label">UUID</span>
+                            <span id="player-uuid-value">00000000-0000-0000-0000-000000000000</span>
                         </div>
                         
-                        <div class="stats-item">
-                            <span class="stats-time">1900h36m08s</span>
-                            <span class="stats-label">Game time</span>
+                        <div class="player-stats-basic">
+                            <div class="stats-item">
+                                <span class="stats-date" id="first-seen-date">N/A</span>
+                                <span class="stats-label" data-lang="stats-first-seen">First seen</span>
+                            </div>
+                            
+                            <div class="stats-item">
+                                <span class="stats-date" id="last-seen-date">N/A</span>
+                                <span class="stats-label" data-lang="stats-last-seen">Last seen</span>
+                            </div>
+                            
+                            <div class="stats-item">
+                                <span class="stats-time" id="play-time">0s</span>
+                                <span class="stats-label" data-lang="stats-play-time">Game time</span>
+                            </div>
                         </div>
+                        <!-- Vous pourriez ajouter plus de sections de statistiques ici -->
                     </div>
                 </div>
             </div>
@@ -64,8 +81,13 @@
     <!-- Scripts -->
     <script src="js/translations.js"></script>
     <script src="js/common.js"></script>
-    <script src="js/main.js"></script>
+    <script src="js/main.js"></script> 
     <script src="js/components.js"></script>
+    
+    <!-- Three.js et skinview3d (local bundle) NOT WORKING!!! -->
+    <!-- <script src="js/lib/three.min.js"></script>
+    <script src="js/lib/skinview3d.bundle.js"></script> -->
+    
     <script src="js/stats.js"></script>
 </body>
 </html>

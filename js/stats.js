@@ -1,287 +1,476 @@
-/**
- * stats.js - Script pour la page des statistiques des joueurs
- * GANGUI Minecraft Server
- */
+// js/stats.js
 
-// Mock database of players
-// In a real application, this data would come from a backend API
+// Références DOM
+const searchInput = document.getElementById('player-search-input');
+const searchButton = document.getElementById('player-search-button');
+const searchMessageEl = document.getElementById('search-message');
+
+const playerStatsDisplaySection = document.getElementById('player-stats-display-section');
+const playerProfileLoadingEl = document.getElementById('player-profile-loading');
+const playerProfileContentEl = document.getElementById('player-profile-content');
+
+const skinViewerContainer = document.getElementById('player-skin-viewer-container');
+const playerUsernameEl = document.getElementById('player-username');
+const playerRoleEl = document.getElementById('player-role');
+const playerStatusIndicator = document.getElementById('player-status-indicator');
+const playerUuidValueEl = document.getElementById('player-uuid-value');
+const firstSeenDateEl = document.getElementById('first-seen-date');
+const lastSeenDateEl = document.getElementById('last-seen-date');
+const playTimeEl = document.getElementById('play-time');
+
+let skinViewer = null;
+let currentDisplayedPlayerInfo = null;
+
+// --- Fonctions utilitaires ---
+function formatPlayTime(ms) {
+    if (ms === 0 && ms !== null) return "0s";
+    if (ms === null || typeof ms === 'undefined') return getTranslation('stats-na', 'N/A');
+    let seconds = Math.floor(ms / 1000);
+    let minutes = Math.floor(seconds / 60);
+    let hours = Math.floor(minutes / 60);
+    seconds %= 60;
+    minutes %= 60;
+    let result = "";
+    if (hours > 0) result += `${hours}h `;
+    if (minutes > 0) result += `${minutes}m `;
+    if (seconds >= 0) result += `${seconds}s`;
+    return result.trim() || getTranslation('stats-na', 'N/A');
+}
+
+function formatDate(timestamp) {
+    if (!timestamp || timestamp === 0) return getTranslation('stats-na', 'N/A');
+    const date = new Date(timestamp);
+    const langForDate = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : 'en';
+    try {
+        return date.toLocaleDateString(langForDate, { year: 'numeric', month: '2-digit', day: '2-digit' });
+    } catch (e) {
+        console.warn("Error formatting date with locale:", e);
+        return date.toLocaleDateString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    }
+}
+
+function getTranslation(key, fallbackText = '') {
+    if (typeof translations !== 'undefined' && typeof currentLang !== 'undefined' &&
+        translations[currentLang] && typeof translations[currentLang][key] !== 'undefined') {
+        return translations[currentLang][key];
+    }
+    return fallbackText || key;
+}
+
+function formatUUID(uuid) {
+    if (!uuid || uuid.length !== 32) return uuid;
+    return `${uuid.substr(0,8)}-${uuid.substr(8,4)}-${uuid.substr(12,4)}-${uuid.substr(16,4)}-${uuid.substr(20,12)}`;
+}
+
+function shortUUID(uuid) { // Renommé de UUID pour utiliser des caractères standards
+    if (!uuid || uuid.length < 8) return uuid;
+    return uuid.substring(0, 8) + "...";
+}
+
+
+// --- API et Logique de Données Joueur ---
+async function getProfileFromUsername(username) {
+    if (!username) return null;
+    const proxy = 'https://corsproxy.io/?';
+    const targetUrl = `https://api.mojang.com/users/profiles/minecraft/${encodeURIComponent(username)}`;
+    const apiUrl = `${proxy}${encodeURIComponent(targetUrl)}`; // Certains proxies nécessitent que l_URL cible soit encodée
+    // Pour corsproxy.io, il semble qu_il faille juste préfixer :
+    // const apiUrl = `${proxy}${targetUrl}`;
+    console.log("getProfileFromUsername: Fetching proxied URL:", `${proxy}${targetUrl}`);
+    try {
+        const response = await fetch(`${proxy}${targetUrl}`);
+        console.log("getProfileFromUsername: Response status:", response.status);
+        if (response.status === 204 || response.status === 404) {
+            console.warn(`Player "${username}" not found via Mojang API (status: ${response.status}).`);
+            return null;
+        }
+        if (!response.ok) {
+            console.error(`Mojang API error (username to UUID): Status ${response.status}, StatusText: ${response.statusText}`);
+            let errorBody = "Could not read error body";
+            try { errorBody = await response.text(); } catch(e){}
+            console.error("Mojang API error body:", errorBody);
+            throw new Error(`Mojang API error: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log("getProfileFromUsername: Data received:", data);
+        return data && data.id ? { uuid: data.id.replace(/-/g, ""), name: data.name } : null;
+    } catch (error) {
+        console.error(`Error in getProfileFromUsername for "${username}":`, error);
+        return null;
+    }
+}
+
+async function getProfileFromUUID(uuid) {
+    if (!uuid) return null;
+    const proxy = 'https://corsproxy.io/?';
+    const targetUrl = `https://sessionserver.mojang.com/session/minecraft/profile/${uuid.replace(/-/g, "")}`;
+    console.log("getProfileFromUUID: Fetching proxied URL:", `${proxy}${targetUrl}`);
+    try {
+        const response = await fetch(`${proxy}${targetUrl}`);
+        console.log("getProfileFromUUID: Response status:", response.status);
+        if (response.status === 204 || response.status === 404) {
+            console.warn(`Profile for UUID "${uuid}" not found via Mojang session API (status: ${response.status}).`);
+            return null;
+        }
+        if (!response.ok) {
+            console.error(`Mojang session API error (UUID to Profile): Status ${response.status}, StatusText: ${response.statusText}`);
+            let errorBody = "Could not read error body";
+            try { errorBody = await response.text(); } catch(e){}
+            console.error("Mojang API error body:", errorBody);
+            throw new Error(`Mojang API error: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log("getProfileFromUUID: Data received:", data);
+        return (data && data.name) ? { name: data.name } : null;
+    } catch (error) {
+        console.error(`Error fetching profile for UUID "${uuid}":`, error);
+        return null;
+    }
+}
+
+function getSkinUrlCrafatar(uuid) {
+    if (!uuid) return "img/player-skin.png"; // Ou une URL de skin par défaut de Crafatar
+    const cleanUUID = uuid.replace(/-/g, "");
+    return `https://crafatar.com/skins/${cleanUUID}?default=MHF_Steve`; // Fallback Steve si skin non trouvé
+}
+
 const MOCK_PLAYER_DB = {
     "djeel": {
-        uuid: "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p",
-        username: "djeel",
-        role: "admin", // 'admin', 'moderator', 'player'
+        uuid: "fe9ac36950eb4fe290d6b4de671f4978",
+        username: "djeel", // La casse que vous voulez dans MOCK_DB
+        role: "admin",
         isOnline: true,
         firstSeen: new Date("2023-01-15T10:00:00Z").getTime(),
-        lastSeen: new Date().getTime(), // now
-        playTime: (350 * 60 * 60 * 1000) + (45 * 60 * 1000), // 350h 45m in milliseconds
-        avatarUrl: "img/player-skin.png", // Default or specific avatar
-        // Add more stats as needed, e.g., kills, deaths, blocks_broken etc.
+        lastSeen: new Date().getTime(),
+        playTime: (350 * 60 * 60 * 1000) + (45 * 60 * 1000),
     },
-    "Gangui": {
-        uuid: "8e1b52fe-954b-44f7-905d-ac999ecc599a",
+    "tomastore": {
+        uuid: "674ba97b64fe47c1aaf2000a01d0037e",
         username: "Gangui",
         role: "player",
         isOnline: false,
         firstSeen: new Date("2022-11-20T14:30:00Z").getTime(),
         lastSeen: new Date("2025-05-08T18:00:00Z").getTime(),
-        playTime: (1900 * 60 * 60 * 1000) + (36 * 60 * 1000) + (8 * 1000), // 1900h 36m 08s
-        avatarUrl: "img/player-skin.png",
+        playTime: (1900 * 60 * 60 * 1000) + (36 * 60 * 1000) + (8 * 1000),
     },
-    "NotFound": {
-        uuid: "00000000-0000-0000-0000-000000000000",
-        username: "NotFound",
-        role: "player",
-        isOnline: false,
-        firstSeen: 0,
-        lastSeen: 0,
-        playTime: 0,
-        avatarUrl: "img/player-skin.png", // A default "unknown" skin
+    "nathan818": {
+        uuid: "f351e57b3a23490488202dab58f01e61",
+        username: "nathan818",
+        role: "ai",
+        isOnline: true,
+        firstSeen: new Date("2023-01-15T10:00:00Z").getTime(),
+        lastSeen: new Date().getTime(),
+        playTime: (350 * 60 * 60 * 1000) + (45 * 60 * 1000),
     }
 };
 
-// DOM Elements
-const searchInput = document.getElementById('player-search-input');
-const searchButton = document.getElementById('player-search-button');
-const searchMessage = document.getElementById('search-message');
-const playerStatsDisplaySection = document.getElementById('player-stats-display-section');
-const playerProfileLoading = document.getElementById('player-profile-loading');
-const playerProfileContent = document.getElementById('player-profile-content');
-
-const playerAvatarImg = document.getElementById('player-avatar-img');
-const playerUsernameEl = document.getElementById('player-username');
-const playerRoleEl = document.getElementById('player-role');
-const playerStatusIndicator = document.getElementById('player-status-indicator');
-const playerUuidValue = document.getElementById('player-uuid-value');
-const firstSeenDateEl = document.getElementById('first-seen-date');
-const lastSeenDateEl = document.getElementById('last-seen-date');
-const playTimeEl = document.getElementById('play-time');
-
-/**
- * Formats milliseconds into a human-readable string (e.g., 120h 30m 15s)
- * @param {number} ms - Duration in milliseconds
- * @returns {string} Formatted duration string
- */
-function formatPlayTime(ms) {
-    if (ms === 0) return "0s";
-    let seconds = Math.floor(ms / 1000);
-    let minutes = Math.floor(seconds / 60);
-    let hours = Math.floor(minutes / 60);
-
-    seconds %= 60;
-    minutes %= 60;
-
-    let result = "";
-    if (hours > 0) result += `${hours}h `;
-    if (minutes > 0) result += `${minutes}m `;
-    if (seconds > 0 || result === "") result += `${seconds}s`;
-    return result.trim();
-}
-
-/**
- * Formats a timestamp into a human-readable date string (e.g., 10/05/2025)
- * @param {number} timestamp - The timestamp in milliseconds
- * @returns {string} Formatted date string
- */
-function formatDate(timestamp) {
-    if (timestamp === 0) return "N/A";
-    const date = new Date(timestamp);
-    // Using currentLang for locale-specific date formatting if available and desired
-    // For simplicity, using a fixed format here. Adjust as needed.
-    return date.toLocaleDateString(currentLang || 'en', { year: 'numeric', month: '2-digit', day: '2-digit' });
-}
-
-/**
- * Simulates fetching player data from an API.
- * @param {string} identifier - Username or UUID
- * @returns {Promise<Object|null>} Player data object or null if not found
- */
 async function fetchPlayerData(identifier) {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 200));
 
-    const lowerIdentifier = identifier.toLowerCase();
-    for (const key in MOCK_PLAYER_DB) {
-        const player = MOCK_PLAYER_DB[key];
-        if (player.username.toLowerCase() === lowerIdentifier || player.uuid.toLowerCase() === lowerIdentifier) {
-            return { ...player }; // Return a copy
+    let uuid = null;
+    let inputUsername = identifier;
+    let officialUsername = identifier; // Sera mis à jour avec la casse correcte
+
+    const cleanedIdentifier = identifier.replace(/-/g, "");
+
+    if (cleanedIdentifier.length >= 30 && /^[0-9a-fA-F]+$/.test(cleanedIdentifier)) { // Accepter UUID avec ou sans tirets, ajuster la longueur si besoin
+        uuid = cleanedIdentifier;
+        const profileFromUUID = await getProfileFromUUID(uuid);
+        if (profileFromUUID && profileFromUUID.name) {
+            officialUsername = profileFromUUID.name;
+        } else {
+            // Si l'API session ne donne pas de nom, on ne peut pas faire mieux que l'input pour l'instant
+            // ou utiliser un placeholder si l'input était un UUID.
+            officialUsername = (identifier === cleanedIdentifier) ? shortUUID(uuid) : identifier;
+        }
+    } else {
+        const profileFromUser = await getProfileFromUsername(inputUsername);
+        if (profileFromUser) {
+            uuid = profileFromUser.uuid;
+            officialUsername = profileFromUser.name;
+        } else {
+            // Fallback vers MOCK_DB si l'API Mojang ne trouve pas le pseudo
+            const mockKey = inputUsername.toLowerCase();
+            if (MOCK_PLAYER_DB[mockKey]) {
+                const mockData = MOCK_PLAYER_DB[mockKey];
+                console.log("Player found in MOCK_DB by pseudo (Mojang API failed/not found):", mockData.username);
+                return {
+                    uuid: mockData.uuid.replace(/-/g,""), // Assurer UUID propre
+                    username: inputUsername,
+                    displayName: mockData.username,
+                    skinUrl: getSkinUrlCrafatar(mockData.uuid),
+                    role: mockData.role,
+                    isOnline: mockData.isOnline,
+                    firstSeen: mockData.firstSeen,
+                    lastSeen: mockData.lastSeen,
+                    playTime: mockData.playTime
+                };
+            }
+            return null; // Joueur non trouvé
         }
     }
-    return null;
+
+    if (!uuid) return null;
+
+    const skinUrl = getSkinUrlCrafatar(uuid);
+    let additionalStats = {
+        role: "player", isOnline: false, firstSeen: null, lastSeen: null, playTime: null,
+    };
+
+    // Chercher dans MOCK_DB par UUID pour les stats supplémentaires
+    const mockDataForUuid = Object.values(MOCK_PLAYER_DB).find(p => p.uuid.replace(/-/g,"") === uuid);
+    if (mockDataForUuid) {
+        additionalStats = {
+            role: mockDataForUuid.role || additionalStats.role,
+            isOnline: typeof mockDataForUuid.isOnline === 'boolean' ? mockDataForUuid.isOnline : additionalStats.isOnline,
+            firstSeen: mockDataForUuid.firstSeen || additionalStats.firstSeen,
+            lastSeen: mockDataForUuid.lastSeen || additionalStats.lastSeen,
+            playTime: typeof mockDataForUuid.playTime === 'number' ? mockDataForUuid.playTime : additionalStats.playTime,
+        };
+        // Si le nom de MOCK_DB est différent, on peut choisir de le prioriser.
+        // Actuellement, officialUsername (de l'API Mojang si dispo) est utilisé pour displayName.
+        // Si MOCK_DB a un nom plus "propre" pour cet UUID, on peut le prendre :
+        officialUsername = mockDataForUuid.username || officialUsername;
+    }
+
+    return {
+        uuid: uuid,
+        username: inputUsername, // Nom de la recherche
+        displayName: officialUsername, // Nom à afficher
+        skinUrl: skinUrl,
+        ...additionalStats,
+    };
 }
 
-/**
- * Updates the DOM with player data.
- * @param {Object} playerData - The player data object.
- */
-function displayPlayerData(playerData) {
-    if (!playerData) {
-        showSearchMessage('stats-player-not-found', 'error');
-        playerStatsDisplaySection.style.display = 'none';
-        playerProfileLoading.style.display = 'none';
+// --- Logique d'affichage ---
+function setupSkinViewer(skinUrl) {
+    if (!skinViewerContainer) {
+        console.warn("Skin viewer container not found!");
+        return;
+    }
+    if (typeof skinview3d === 'undefined') {
+        console.error("skinview3d library is not loaded.");
+        skinViewerContainer.innerHTML = `<img src="${skinUrl || 'img/player-skin.png'}" alt="Player skin fallback" style="width:100%; height:100%; object-fit:contain; image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges;">`;
         return;
     }
 
-    playerProfileContent.style.display = 'none'; // Hide while updating
-    playerProfileLoading.style.display = 'block';
+    while (skinViewerContainer.firstChild) {
+        skinViewerContainer.removeChild(skinViewerContainer.firstChild);
+    }
+    if (skinViewer && typeof skinViewer.dispose === 'function') { // Dispose de l'ancien viewer si existant
+        skinViewer.dispose();
+    }
+    skinViewer = null;
 
+    try {
+        let actualSkinUrl = skinUrl;
+        if (!actualSkinUrl || actualSkinUrl.trim() === "") {
+            actualSkinUrl = getSkinUrlCrafatar(null); // Steve par défaut
+        }
+        
+        const containerWidth = skinViewerContainer.offsetWidth || 200;
+        const containerHeight = skinViewerContainer.offsetHeight || 300;
 
-    // Basic Info
-    playerUsernameEl.textContent = playerData.username;
-    playerUuidValue.textContent = playerData.uuid;
-    playerAvatarImg.src = playerData.avatarUrl || "img/player-skin.png"; // Fallback to default
-    playerAvatarImg.alt = `${playerData.username}'s skin`;
+        if(containerWidth === 0 || containerHeight === 0) {
+            console.warn("Skin viewer container has zero dimensions. Viewer might not render correctly.");
+            // Vous pourriez vouloir afficher un message ou ne pas initialiser le viewer.
+        }
 
-    // Status
+        skinViewer = new skinview3d.SkinViewer({
+            width: containerWidth,
+            height: containerHeight,
+            skin: actualSkinUrl,
+            zoom: 0.75,
+        });
+        skinViewerContainer.appendChild(skinViewer.canvas);
+        
+        skinViewer.camera.position.set(0, 1.5, 3.5); 
+        skinViewer.camera.lookAt(new skinview3d.THREE.Vector3(0, 0.9, 0));
+
+        const idleAnimation = skinViewer.animationSystem.createAnimation(
+            skinview3d.IdleAnimation,
+             { speed: 0.6, intensity: 0.01 }
+        );
+        idleAnimation.play();
+
+        skinViewer.controls.enableRotate = true;
+        skinViewer.controls.enableZoom = false;
+        skinViewer.controls.enablePan = false;
+        skinViewer.controls.rotateSpeed = 0.5;
+        skinViewer.controls.minPolarAngle = Math.PI / 3;    
+        skinViewer.controls.maxPolarAngle = Math.PI * (2/3); 
+
+        // Nettoyer les lumières par défaut si elles existent et ne conviennent pas
+        const defaultAmbient = skinViewer.scene.children.find(c => c.isAmbientLight);
+        if(defaultAmbient) skinViewer.scene.remove(defaultAmbient);
+        const defaultDirectional = skinViewer.scene.children.find(c => c.isDirectionalLight);
+        if(defaultDirectional) skinViewer.scene.remove(defaultDirectional);
+
+        const ambient = new skinview3d.THREE.AmbientLight(0xffffff, 0.65); // Augmenté un peu
+        skinViewer.scene.add(ambient);
+
+        const directionalLight1 = new skinview3d.THREE.DirectionalLight(0xffffff, 0.35); // Augmenté un peu
+        directionalLight1.position.set(3, 5, 3);
+        skinViewer.scene.add(directionalLight1);
+
+        const directionalLight2 = new skinview3d.THREE.DirectionalLight(0xffffff, 0.25); // Augmenté un peu
+        directionalLight2.position.set(-3, 5, -3);
+        skinViewer.scene.add(directionalLight2);
+        
+        // ResizeObserver pour gérer le redimensionnement du conteneur
+        const resizeObserver = new ResizeObserver(entries => {
+            if (!skinViewer || !entries || !entries.length) return;
+            const entry = entries[0];
+            const { width, height } = entry.contentRect;
+            if (width > 0 && height > 0 && skinViewer.width !== width || skinViewer.height !== height) {
+                 skinViewer.setSize(width, height);
+            }
+        });
+        resizeObserver.observe(skinViewerContainer);
+
+    } catch (error) {
+        console.error("Erreur lors de l'initialisation de skinview3d:", error);
+        skinViewerContainer.innerHTML = `<p class="error search-message error" style="display:block;">${getTranslation('stats-skin-error', 'Error loading skin')}</p>`;
+    }
+}
+
+function displayPlayerData(playerData) {
+    if (!playerData || !playerData.uuid) {
+        showSearchMessage('stats-player-not-found', 'error', true); // Utiliser true pour isKey
+        playerStatsDisplaySection.style.display = 'none';
+        currentDisplayedPlayerInfo = null;
+        if (skinViewerContainer) skinViewerContainer.innerHTML = '';
+        return;
+    }
+    currentDisplayedPlayerInfo = { ...playerData };
+
+    playerProfileContentEl.style.display = 'none';
+    playerProfileLoadingEl.style.display = 'flex';
+    playerStatsDisplaySection.style.display = 'block';
+
+    const skinDisplayUrl = playerData.skinUrl || getSkinUrlCrafatar(playerData.uuid);
+    setupSkinViewer(skinDisplayUrl);
+
+    playerUsernameEl.textContent = playerData.displayName || getTranslation('stats-unknown-player', 'Unknown Player');
+    playerUuidValueEl.textContent = playerData.uuid ? formatUUID(playerData.uuid) : 'N/A';
+
+    const roleText = playerData.role ? playerData.role.toLowerCase() : 'player';
+    playerRoleEl.textContent = getTranslation(`stats-role-${roleText}`, roleText.toUpperCase());
+    playerRoleEl.className = `player-role ${roleText}`;
+    playerRoleEl.style.display = playerData.role ? 'inline-flex' : 'none';
+
     playerStatusIndicator.classList.toggle('online', playerData.isOnline);
     playerStatusIndicator.classList.toggle('offline', !playerData.isOnline);
-    // Assuming translations for 'Online'/'Offline' text in a title or ::after pseudo-element
-    // If direct text is needed:
-    // playerStatusIndicator.textContent = playerData.isOnline ? translations[currentLang]['stats-status-online'] : translations[currentLang]['stats-status-offline'];
-    // playerStatusIndicator.setAttribute('data-lang', playerData.isOnline ? 'stats-status-online' : 'stats-status-offline');
+    playerStatusIndicator.title = playerData.isOnline ? getTranslation('stats-status-online', 'Online') : getTranslation('stats-status-offline', 'Offline');
 
-
-    // Role
-    const roleKey = `stats-role-${playerData.role.toLowerCase()}`;
-    playerRoleEl.textContent = translations[currentLang] ? (translations[currentLang][roleKey] || playerData.role.toUpperCase()) : playerData.role.toUpperCase();
-    playerRoleEl.className = `player-role ${playerData.role.toLowerCase()}`; // Update class for styling
-    playerRoleEl.style.display = 'inline-flex';
-
-
-    // Dates & Playtime
     firstSeenDateEl.textContent = formatDate(playerData.firstSeen);
     lastSeenDateEl.textContent = formatDate(playerData.lastSeen);
     playTimeEl.textContent = formatPlayTime(playerData.playTime);
 
-    // Translations for dynamically set content (ensure keys exist or add them to translations.js)
-    // This is mostly handled by data-lang attributes on static labels.
-    // If you need to update tooltips or other text content based on data:
-    // playerStatusIndicator.title = translations[currentLang][playerData.isOnline ? 'stats-status-online' : 'stats-status-offline'];
-    
-    // Show the content
-    playerStatsDisplaySection.style.display = 'block';
-    playerProfileLoading.style.display = 'none';
-    playerProfileContent.style.display = 'flex'; // Or 'block' depending on your CSS for .player-profile
-
-    // Update all translations on the page
-    if (typeof updateLanguage === 'function') {
-        updateLanguage(currentLang);
-    }
+    playerProfileLoadingEl.style.display = 'none';
+    playerProfileContentEl.style.display = 'flex';
 }
 
-/**
- * Shows a message in the search message area.
- * @param {string} langKey - The translation key for the message.
- * @param {'info'|'error'|'success'} type - Message type for styling.
- */
-function showSearchMessage(langKey, type = 'info') {
-    if (translations[currentLang] && translations[currentLang][langKey]) {
-        searchMessage.textContent = translations[currentLang][langKey];
+
+function showSearchMessage(messageKeyOrText, type = 'info', isKey = true) {
+    const message = isKey ? getTranslation(messageKeyOrText, messageKeyOrText) : messageKeyOrText;
+    searchMessageEl.textContent = message;
+    searchMessageEl.className = `search-message ${type}`;
+    searchMessageEl.style.display = 'block';
+    if (isKey) {
+        searchMessageEl.dataset.langKey = messageKeyOrText; 
     } else {
-        searchMessage.textContent = langKey; // Fallback to key if not found
+        searchMessageEl.removeAttribute('data-lang-key');
     }
-    searchMessage.className = `search-message ${type}`;
-    searchMessage.style.display = 'block';
+    searchMessageEl.dataset.messageType = type;
 }
 
-/**
- * Clears the search message.
- */
 function clearSearchMessage() {
-    searchMessage.textContent = '';
-    searchMessage.style.display = 'none';
+    searchMessageEl.textContent = '';
+    searchMessageEl.style.display = 'none';
+    searchMessageEl.removeAttribute('data-lang-key');
+    searchMessageEl.removeAttribute('data-message-type');
 }
 
-/**
- * Handles the player search logic.
- */
-async function handleSearch() {
+async function handlePlayerSearch() {
     const query = searchInput.value.trim();
     if (!query) {
-        // Optionally show a message if query is empty, or just do nothing
+        showSearchMessage('stats-empty-query', 'info', true);
         return;
     }
 
     clearSearchMessage();
-    playerStatsDisplaySection.style.display = 'none';
-    playerProfileContent.style.display = 'none';
-    playerProfileLoading.style.display = 'block';
-    playerStatsDisplaySection.style.display = 'block'; // Show the section for loading message
+    playerStatsDisplaySection.style.display = 'block';
+    playerProfileContentEl.style.display = 'none';
+    playerProfileLoadingEl.style.display = 'flex';
+    playerProfileLoadingEl.querySelector('p').innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${getTranslation('stats-loading', 'Loading player data...')}`;
 
     try {
         const playerData = await fetchPlayerData(query);
         if (playerData) {
             displayPlayerData(playerData);
-            // Update URL for shareability, without reloading the page
             const url = new URL(window.location);
-            url.searchParams.set('player', query);
-            window.history.pushState({}, '', url);
+            url.searchParams.set('player', playerData.displayName || playerData.username); // Utiliser displayName pour l'URL
+            window.history.pushState({ player: playerData.displayName || playerData.username }, '', url);
         } else {
-            showSearchMessage('stats-player-not-found', 'error');
-            playerProfileLoading.style.display = 'none';
+            showSearchMessage('stats-player-not-found', 'error', true);
+            playerProfileLoadingEl.style.display = 'none';
             playerStatsDisplaySection.style.display = 'none';
+            currentDisplayedPlayerInfo = null;
+            if (skinViewerContainer) skinViewerContainer.innerHTML = '';
         }
     } catch (error) {
         console.error("Search error:", error);
-        showSearchMessage('stats-search-error', 'error');
-        playerProfileLoading.style.display = 'none';
+        showSearchMessage('stats-search-error', 'error', true);
+        playerProfileLoadingEl.style.display = 'none';
         playerStatsDisplaySection.style.display = 'none';
+        currentDisplayedPlayerInfo = null;
+        if (skinViewerContainer) skinViewerContainer.innerHTML = '';
     }
 }
 
-
-/**
- * Tries to load player data from URL parameter on page load.
- */
 function loadPlayerFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
     const playerIdentifier = urlParams.get('player');
-
     if (playerIdentifier) {
-        searchInput.value = playerIdentifier; // Populate search bar
-        handleSearch(); // Perform search
+        searchInput.value = playerIdentifier;
+        handlePlayerSearch();
+    } else {
+        playerStatsDisplaySection.style.display = 'none';
+        showSearchMessage('stats-search-prompt', 'info', true);
+        if (skinViewerContainer) skinViewerContainer.innerHTML = '';
     }
 }
 
-
-// -----------------------------------------------------
-// INITIALIZATION
-// -----------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
-    // Event Listeners
-    if (searchButton) {
-        searchButton.addEventListener('click', handleSearch);
-    }
-    if (searchInput) {
+    if (searchButton && searchInput) {
+        searchButton.addEventListener('click', handlePlayerSearch);
         searchInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-                handleSearch();
-            }
+            if (event.key === 'Enter') handlePlayerSearch();
         });
     }
-
-    // Initial language setup (assuming common.js or main.js handles this)
-    // If not, you'd call initLanguageSystem() here if it were part of this file.
-    // For now, ensure `currentLang` is available and `updateLanguage` can be called.
-    // We'll call updateLanguage once at the end to ensure all initial text is translated.
-    if (typeof updateLanguage === 'function') {
-         // Call initially if needed, or rely on main.js/common.js
-        // updateLanguage(localStorage.getItem('lang') || 'en');
+    
+    if (typeof updateLanguage === "function" && typeof currentLang !== "undefined") {
+        // Cet appel traduit les éléments data-lang statiques sur la page.
+        // `loadPlayerFromURL` appellera `handlePlayerSearch` qui appellera `displayPlayerData`
+        // et `displayPlayerData` utilise déjà `getTranslation` pour les textes dynamiques.
+        updateLanguage(currentLang, false); 
     }
 
-    loadPlayerFromURL(); // Check if a player was linked directly
-
-    // Ensure translations are applied after DOM is ready and initial player load attempt
-    // This relies on initLanguageSystem() from main.js having set the correct currentLang.
-    if (typeof updateLanguage === 'function' && typeof translations !== 'undefined') {
-        updateLanguage(currentLang || localStorage.getItem('lang') || 'en');
-    } else {
-        console.warn('updateLanguage function or translations object not found. Ensure main.js/common.js and translations.js are loaded and correct.');
-    }
+    loadPlayerFromURL();
+        
+    document.addEventListener('languageChanged', (event) => {
+        const newLang = event.detail.language;
+        // Retraduire les messages actifs
+        if (searchMessageEl.style.display === 'block' && searchMessageEl.dataset.langKey) {
+            showSearchMessage(searchMessageEl.dataset.langKey, searchMessageEl.dataset.messageType || 'info', true);
+        }
+        if(playerProfileLoadingEl.style.display === 'flex' && playerProfileLoadingEl.querySelector('p')){
+            playerProfileLoadingEl.querySelector('p').innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${getTranslation('stats-loading', 'Loading player data...')}`;
+        }
+        // Si un profil est affiché, le remettre à jour pour les traductions dynamiques
+        if (currentDisplayedPlayerInfo) {
+             displayPlayerData(currentDisplayedPlayerInfo); // Raffraichir l_affichage avec la nouvelle langue (getTranslation sera utilisé)
+        }
+    });
 });
-
-// Make sure currentLang is globally available or passed around if needed.
-// For this example, we assume currentLang is set globally by initLanguageSystem in main.js/common.js
-// If currentLang is not defined initially, set a default to avoid errors
-if (typeof currentLang === 'undefined') {
-    var currentLang = localStorage.getItem('lang') || 'en';
-}
