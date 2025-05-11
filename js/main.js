@@ -282,42 +282,35 @@ function initMouseSpotlight() {
     const spotlight = document.querySelector('.mouse-spotlight');
     if (!spotlight) return;
 
-    let targetX = window.innerWidth / 2, targetY = window.innerHeight / 2;
-    let currentX = targetX, currentY = targetY;
+    let x = 0, y = 0;
     let animationFrameId = null;
 
     function moveSpotlight() {
-        currentX += (targetX - currentX) * 0.15;
-        currentY += (targetY - currentY) * 0.15;
-        spotlight.style.transform = `translate(${currentX - spotlight.offsetWidth / 2}px, ${currentY - spotlight.offsetHeight / 2}px)`;
+        spotlight.style.left = `${x}px`;
+        spotlight.style.top = `${y}px`;
         animationFrameId = requestAnimationFrame(moveSpotlight);
     }
-    
-    function startAnimation(e) {
-        targetX = e.clientX;
-        targetY = e.clientY;
-        document.body.classList.add('spotlight-active');
+
+    function updateSpotlight(e) {
+        x = e.clientX - spotlight.offsetWidth / 2;
+        y = e.clientY - spotlight.offsetHeight / 2;
+    }
+
+    document.addEventListener('mousemove', (e) => {
+        updateSpotlight(e);
         if (!animationFrameId) {
             animationFrameId = requestAnimationFrame(moveSpotlight);
+            document.body.classList.add('spotlight-active');
         }
-    }
+    });
 
-    function stopAnimation() {
+    document.addEventListener('mouseleave', () => {
         document.body.classList.remove('spotlight-active');
-        if (animationFrameId) {
-           cancelAnimationFrame(animationFrameId);
-           animationFrameId = null;
-        }
-    }
-
-    document.addEventListener('mousemove', startAnimation, { passive: true });
-    document.addEventListener('mouseleave', stopAnimation);
-    document.addEventListener('mouseenter', (e) => { // Reprendre si la souris revient et le corps a toujours la classe (ou si on veut la remettre)
-         if (document.body.classList.contains('spotlight-active')) { // Optionel: vérifier si la classe est tjrs là
-            startAnimation(e);
-         }
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
     });
 }
+
 
 
 // -----------------------------------------------------

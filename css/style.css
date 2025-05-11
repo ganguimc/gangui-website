@@ -821,41 +821,19 @@ button {
 /* ==========================================================================
    Mouse Spotlight Effect
    ========================================================================== */
-/**
- * Mouse Spotlight Effect - Version simplifiée
- */
 
 /* Effet de spotlight qui suit la souris */
 .mouse-spotlight {
     position: fixed;
     pointer-events: none; /* Ne pas interférer avec les clics */
     z-index: 10;
-    width: 500px; 
+    width: 500px;
     height: 500px;
     border-radius: 50%;
-    
-    /* Gradient amélioré mais simplifié */
-    background: radial-gradient(circle, 
-        rgba(252, 139, 79, 0.247) 0%, 
-        rgba(252, 139, 79, 0) 60%, 
-        transparent 80%);
-    
-    /* Flou optimisé */
+    background: radial-gradient(circle, rgba(252, 139, 79, 0.247) 0%, rgba(252, 139, 79, 0) 60%, transparent 80%);
     filter: blur(45px);
-    
-    /* Position initiale (sera modifiée par JS) */
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    
-    /* Caché par défaut */
     opacity: 0;
-    
-    /* Transition fluide */
     transition: opacity 0.5s ease;
-    
-    /* Optimisation des performances */
-    will-change: transform, opacity;
 }
 
 /* État actif */
