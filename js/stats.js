@@ -23,7 +23,7 @@ let currentDisplayedPlayerInfo = null;
 
 // --- Fonctions utilitaires ---
 function formatPlayTime(ms) {
-    if (ms === 0 && ms !== null) return "0s";
+    if (ms === 0 && ms !== null) return getTranslation('stats-play-time', "0s");
     if (ms === null || typeof ms === 'undefined') return getTranslation('stats-na', 'N/A');
     let seconds = Math.floor(ms / 1000);
     let minutes = Math.floor(seconds / 60);
@@ -73,7 +73,7 @@ async function getProfileFromUsername(username) {
     if (!username) return null;
     const proxy = 'https://corsproxy.io/?';
     const targetUrl = `https://api.mojang.com/users/profiles/minecraft/${encodeURIComponent(username)}`;
-    const apiUrl = `${proxy}${encodeURIComponent(targetUrl)}`; // Certains proxies nécessitent que l_URL cible soit encodée
+    const apiUrl = `${proxy}${targetUrl}`; // Certains proxies nécessitent que l_URL cible soit encodée
     // Pour corsproxy.io, il semble qu_il faille juste préfixer :
     // const apiUrl = `${proxy}${targetUrl}`;
     console.log("getProfileFromUsername: Fetching proxied URL:", `${proxy}${targetUrl}`);
@@ -227,7 +227,7 @@ async function fetchPlayerData(identifier) {
             lastSeen: mockDataForUuid.lastSeen || additionalStats.lastSeen,
             playTime: typeof mockDataForUuid.playTime === 'number' ? mockDataForUuid.playTime : additionalStats.playTime,
         };
-        // Si le nom de MOCK_DB est différent, on peut choisir de le prioriser.
+        // Si MOCK_DB a un nom plus "propre" pour cet UUID, on peut le prendre :
         // Actuellement, officialUsername (de l'API Mojang si dispo) est utilisé pour displayName.
         // Si MOCK_DB a un nom plus "propre" pour cet UUID, on peut le prendre :
         officialUsername = mockDataForUuid.username || officialUsername;
@@ -288,7 +288,7 @@ function setupSkinViewer(skinUrl) {
         skinViewer.camera.lookAt(new skinview3d.THREE.Vector3(0, 0.9, 0));
 
         const idleAnimation = skinViewer.animationSystem.createAnimation(
-            skinview3d.IdleAnimation,
+            skinview3d.IdleAnimation, 
              { speed: 0.6, intensity: 0.01 }
         );
         idleAnimation.play();
@@ -306,14 +306,14 @@ function setupSkinViewer(skinUrl) {
         const defaultDirectional = skinViewer.scene.children.find(c => c.isDirectionalLight);
         if(defaultDirectional) skinViewer.scene.remove(defaultDirectional);
 
-        const ambient = new skinview3d.THREE.AmbientLight(0xffffff, 0.65); // Augmenté un peu
+        const ambient = new skinview3d.THREE.AmbientLight(0xffffff, 0.65); 
         skinViewer.scene.add(ambient);
 
-        const directionalLight1 = new skinview3d.THREE.DirectionalLight(0xffffff, 0.35); // Augmenté un peu
+        const directionalLight1 = new skinview3d.THREE.DirectionalLight(0xffffff, 0.35); 
         directionalLight1.position.set(3, 5, 3);
         skinViewer.scene.add(directionalLight1);
 
-        const directionalLight2 = new skinview3d.THREE.DirectionalLight(0xffffff, 0.25); // Augmenté un peu
+        const directionalLight2 = new skinview3d.THREE.DirectionalLight(0xffffff, 0.25); 
         directionalLight2.position.set(-3, 5, -3);
         skinViewer.scene.add(directionalLight2);
         
@@ -336,7 +336,7 @@ function setupSkinViewer(skinUrl) {
 
 function displayPlayerData(playerData) {
     if (!playerData || !playerData.uuid) {
-        showSearchMessage('stats-player-not-found', 'error', true); // Utiliser true pour isKey
+        showSearchMessage('stats-player-not-found', 'error', true); 
         playerStatsDisplaySection.style.display = 'none';
         currentDisplayedPlayerInfo = null;
         if (skinViewerContainer) skinViewerContainer.innerHTML = '';
@@ -410,7 +410,7 @@ async function handlePlayerSearch() {
         if (playerData) {
             displayPlayerData(playerData);
             const url = new URL(window.location);
-            url.searchParams.set('player', playerData.displayName || playerData.username); // Utiliser displayName pour l'URL
+            url.searchParams.set('player', playerData.displayName || playerData.username); 
             window.history.pushState({ player: playerData.displayName || playerData.username }, '', url);
         } else {
             showSearchMessage('stats-player-not-found', 'error', true);
@@ -470,7 +470,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         // Si un profil est affiché, le remettre à jour pour les traductions dynamiques
         if (currentDisplayedPlayerInfo) {
-             displayPlayerData(currentDisplayedPlayerInfo); // Raffraichir l_affichage avec la nouvelle langue (getTranslation sera utilisé)
+             displayPlayerData(currentDisplayedPlayerInfo); 
         }
     });
 });

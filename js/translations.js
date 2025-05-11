@@ -73,6 +73,21 @@ const translations = {
         'footer-copyright': 'All rights reserved.',
         'footer-disclaimer': 'GANGUI is not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.',
         
+        // Stats
+        'stats-search-button': 'Search',
+        'stats-loading': 'Loading player data...',
+        'stats-uuid-label': 'UUID',
+        'stats-first-seen': 'First seen',
+        'stats-last-seen': 'Last seen',
+        'stats-play-time': 'Game time',
+        'stats-na': 'N/A',
+        'stats-player-not-found': 'Player not found',
+        'stats-search-prompt': 'Enter player name or UUID',
+        'stats-search-error': 'Search error',
+        'stats-skin-error': 'Error loading skin',
+        'stats-status-online': 'Online',
+        'stats-status-offline': 'Offline',
+
         // Logo
         'logo-brand': 'GANGUI',
         
@@ -152,6 +167,21 @@ const translations = {
         'footer-copyright': 'Tous droits réservés.',
         'footer-disclaimer': 'GANGUI n\'est pas un produit officiel Minecraft. Non approuvé par ou associé à Mojang ou Microsoft.',
         
+        // Stats
+        'stats-search-button': 'Rechercher',
+        'stats-loading': 'Chargement des données du joueur...',
+        'stats-uuid-label': 'UUID',
+        'stats-first-seen': 'Première fois vu',
+        'stats-last-seen': 'Dernière fois vu',
+        'stats-play-time': 'Temps de jeu',
+        'stats-na': 'N/A',
+        'stats-player-not-found': 'Joueur non trouvé',
+        'stats-search-prompt': 'Entrer le nom du joueur ou l\'UUID',
+        'stats-search-error': 'Erreur de recherche',
+        'stats-skin-error': 'Erreur lors du chargement de la peau',
+        'stats-status-online': 'En ligne',
+        'stats-status-offline': 'Hors ligne',
+
         // Logo
         'logo-brand': 'GANGUI',
         
@@ -231,6 +261,21 @@ const translations = {
         'footer-copyright': 'Todos los derechos reservados.',
         'footer-disclaimer': 'GANGUI no es un producto oficial de Minecraft. No está aprobado ni asociado con Mojang o Microsoft.',
        
+        // Stats
+        'stats-search-button': 'Buscar',
+        'stats-loading': 'Cargando datos del jugador...',
+        'stats-uuid-label': 'UUID',
+        'stats-first-seen': 'Primera vez visto',
+        'stats-last-seen': 'Última vez visto',
+        'stats-play-time': 'Tiempo de juego',
+        'stats-na': 'N/A',
+        'stats-player-not-found': 'Jugador no encontrado',
+        'stats-search-prompt': 'Ingrese el nombre del jugador o UUID',
+        'stats-search-error': 'Error de búsqueda',
+        'stats-skin-error': 'Error cargando la piel',
+        'stats-status-online': 'En línea',
+        'stats-status-offline': 'Fuera de línea',
+
         // Logo
         'logo-brand': 'GANGUI',
        
@@ -309,7 +354,22 @@ const translations = {
         'status-version': 'Version:',
         'footer-copyright': 'Alle Rechte vorbehalten.',
         'footer-disclaimer': 'GANGUI ist kein offizielles Minecraft-Produkt. Nicht von Mojang oder Microsoft genehmigt oder mit ihnen verbunden.',
-       
+        
+        // Stats
+        'stats-search-button': 'Suchen',
+        'stats-loading': 'Lade Spieler Daten...',
+        'stats-uuid-label': 'UUID',
+        'stats-first-seen': 'Erstes Mal gesehen',
+        'stats-last-seen': 'Zuletzt gesehen',
+        'stats-play-time': 'Spielzeit',
+        'stats-na': 'N/A',
+        'stats-player-not-found': 'Spieler nicht gefunden',
+        'stats-search-prompt': 'Spielername oder UUID eingeben',
+        'stats-search-error': 'Suchfehler',
+        'stats-skin-error': 'Fehler beim Laden der Haut',
+        'stats-status-online': 'Online',
+        'stats-status-offline': 'Offline',
+
         // Logo
         'logo-brand': 'GANGUI',
        
@@ -388,7 +448,22 @@ const translations = {
         'status-version': 'Versiune:',
         'footer-copyright': 'Toate drepturile rezervate.',
         'footer-disclaimer': 'GANGUI nu este un produs oficial Minecraft. Nu este aprobat de sau asociat cu Mojang sau Microsoft.',
-       
+        
+        // Stats
+        'stats-search-button': 'Căutați',
+        'stats-loading': 'Încărcarea datelor jucătorului...',
+        'stats-uuid-label': 'UUID',
+        'stats-first-seen': 'Prima dată văzut',
+        'stats-last-seen': 'Ultima dată văzut',
+        'stats-play-time': 'Timp de joc',
+        'stats-na': 'N/A',
+        'stats-player-not-found': 'Jucător nu a fost găsit',
+        'stats-search-prompt': 'Introduceți numele jucătorului sau UUID',
+        'stats-search-error': 'Eroare de căutare',
+        'stats-skin-error': 'Eroare la încărcarea pielii',
+        'stats-status-online': 'Online',
+        'stats-status-offline': 'Offline',
+
         // Logo
         'logo-brand': 'GANGUI',
        
@@ -467,7 +542,22 @@ const translations = {
         'status-version': 'Версия:',
         'footer-copyright': 'Все права защищены.',
         'footer-disclaimer': 'GANGUI не является официальным продуктом Minecraft. Не одобрено и не связано с Mojang или Microsoft.',
-       
+        
+        // Stats
+        'stats-search-button': 'Поиск',
+        'stats-loading': 'Загрузка данных игрока...',
+        'stats-uuid-label': 'UUID',
+        'stats-first-seen': 'Первый раз seen',
+        'stats-last-seen': 'Последний раз seen',
+        'stats-play-time': 'Время игры',
+        'stats-na': 'N/A',
+        'stats-player-not-found': 'Игрок не найден',
+        'stats-search-prompt': 'Введите имя игрока или UUID',
+        'stats-search-error': 'Ошибка поиска',
+        'stats-skin-error': 'Ошибка загрузки скина',
+        'stats-status-online': 'Онлайн',
+        'stats-status-offline': 'Оффлайн',
+
         // Logo
         'logo-brand': 'GANGUI',
        
@@ -546,7 +636,22 @@ const translations = {
         'status-version': '版本：',
         'footer-copyright': '版权所有。',
         'footer-disclaimer': 'GANGUI 不是 Minecraft 的官方产品。未经 Mojang 或 Microsoft 批准或与之相关联。',
-       
+        
+        // Stats
+        'stats-search-button': '搜索',
+        'stats-loading': '加载玩家数据...',
+        'stats-uuid-label': 'UUID',
+        'stats-first-seen': '首次见到',
+        'stats-last-seen': '最后见到',
+        'stats-play-time': '游戏时间',
+        'stats-na': 'N/A',
+        'stats-player-not-found': '玩家未找到',
+        'stats-search-prompt': '输入玩家名称或UUID',
+        'stats-search-error': '搜索错误',
+        'stats-skin-error': '皮肤加载错误',
+        'stats-status-online': '在线',
+        'stats-status-offline': '离线',
+        
         // Logo
         'logo-brand': 'GANGUI',
        
