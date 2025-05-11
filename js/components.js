@@ -21,6 +21,22 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // Initialiser les composants une fois que tout est chargé
         initComponents();
+
+        // Appel de updateLanguage pour s'assurer que les composants nouvellement chargés 
+        // sont traduits avec la langue actuelle.
+        // main.js devrait déjà avoir initialisé currentLang via initLanguageSystem.
+        if (typeof updateLanguage === 'function' && typeof currentLang !== 'undefined') {
+            updateLanguage(currentLang, false); // 'false' pour ne pas re-sauvegarder la préférence.
+        } else {
+            console.warn('[components.js] updateLanguage function or currentLang not found. Header/footer might not be translated on initial load.');
+            // Fallback: essayer de récupérer la langue depuis le stockage et de l'appliquer si updateLanguage est disponible
+            if (typeof updateLanguage === 'function' && typeof SiteManager !== 'undefined' && SiteManager.storage && SiteManager.storage.get) {
+                const DEFAULT_SITE_LANG = 'en'; // Assurez-vous que cette constante est disponible ou hardcodez la valeur par défaut
+                const SITE_LANGUAGE_KEY = 'site_language'; // Assurez-vous que cette constante est disponible
+                const savedLang = SiteManager.storage.get(SITE_LANGUAGE_KEY, DEFAULT_SITE_LANG);
+                updateLanguage(savedLang, false);
+            }
+        }
     } catch (error) {
         console.error('Erreur lors du chargement des composants:', error);
     }
