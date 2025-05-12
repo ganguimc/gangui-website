@@ -74,6 +74,7 @@ const translations = {
         'footer-disclaimer': 'GANGUI is not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.',
         
         // Stats
+        'stats-search-input': 'Username or UUID',
         'stats-search-button': 'Search',
         'stats-loading': 'Loading player data...',
         'stats-uuid-label': 'UUID',
@@ -169,6 +170,7 @@ const translations = {
         'footer-disclaimer': 'GANGUI n\'est pas un produit officiel Minecraft. Non approuvé par ou associé à Mojang ou Microsoft.',
         
         // Stats
+        'stats-search-input': 'Nom de joueur ou UUID',
         'stats-search-button': 'Rechercher',
         'stats-loading': 'Chargement des données du joueur...',
         'stats-uuid-label': 'UUID',
@@ -264,6 +266,7 @@ const translations = {
         'footer-disclaimer': 'GANGUI no es un producto oficial de Minecraft. No está aprobado ni asociado con Mojang o Microsoft.',
        
         // Stats
+        'stats-search-input': 'Nombre de jugador o UUID',
         'stats-search-button': 'Buscar',
         'stats-loading': 'Cargando datos del jugador...',
         'stats-uuid-label': 'UUID',
@@ -359,6 +362,7 @@ const translations = {
         'footer-disclaimer': 'GANGUI ist kein offizielles Minecraft-Produkt. Nicht von Mojang oder Microsoft genehmigt oder mit ihnen verbunden.',
         
         // Stats
+        'stats-search-input': 'Spielername oder UUID',
         'stats-search-button': 'Suchen',
         'stats-loading': 'Lade Spieler Daten...',
         'stats-uuid-label': 'UUID',
@@ -454,6 +458,7 @@ const translations = {
         'footer-disclaimer': 'GANGUI nu este un produs oficial Minecraft. Nu este aprobat de sau asociat cu Mojang sau Microsoft.',
         
         // Stats
+        'stats-search-input': 'Numele jucătorului sau UUID',
         'stats-search-button': 'Căutați',
         'stats-loading': 'Încărcarea datelor jucătorului...',
         'stats-uuid-label': 'UUID',
@@ -549,6 +554,7 @@ const translations = {
         'footer-disclaimer': 'GANGUI не является официальным продуктом Minecraft. Не одобрено и не связано с Mojang или Microsoft.',
         
         // Stats
+        'stats-search-input': 'Имя игрока или UUID',
         'stats-search-button': 'Поиск',
         'stats-loading': 'Загрузка данных игрока...',
         'stats-uuid-label': 'UUID',
@@ -644,6 +650,7 @@ const translations = {
         'footer-disclaimer': 'GANGUI 不是 Minecraft 的官方产品。未经 Mojang 或 Microsoft 批准或与之相关联。',
         
         // Stats
+        'stats-search-input': '玩家名称或UUID',
         'stats-search-button': '搜索',
         'stats-loading': '加载玩家数据...',
         'stats-uuid-label': 'UUID',

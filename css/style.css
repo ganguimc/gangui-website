@@ -59,6 +59,8 @@ button {
 /* ==========================================================================
    Utilitaires (Container, Section Header)
    ========================================================================== */
+
+
 .container { /* Utilisé dans index.html et par header/footer */
     width: 100%;
     max-width: 1280px;
@@ -132,7 +134,6 @@ button {
     background-color: var(--primary-dark);
     color: var(--text-primary); /* Etait #ffffff */
     border-color: var(--text-primary); /* Optionnel: foncer la bordure aussi */
-    transform: translateX(1px); /* Maintient l'animation de survol */
 }
 
 .btn-discord { background-color: #5865F2; color: var(--text-primary); /* Etait #ffffff */ }
@@ -141,7 +142,6 @@ button {
     border-color: var(--primary);
     color: var(--text-primary); /* Etait #ffffff */
     border-color: var(--text-primary);
-    transform: translateX(1px); /* Maintient l'animation de survol */
 }
 
 /* .btn-secondary et .btn-dark ont été modifiés dans la section HERO,
@@ -155,7 +155,6 @@ button {
     background: var(--bg-light); /* Conserve le fond */
     color: var(--primary);
     border-color: var(--primary); /* La bordure devient primaire */
-    transform: translateX(1px); /* Maintient l'animation de survol */
 }
 
 .btn-dark {
@@ -166,7 +165,6 @@ button {
     background: var(--bg-light); /* Conserve le fond */
     color: var(--primary);
     border-color: var(--primary); /* La bordure devient primaire */
-    transform: translateX(1px); /* Maintient l'animation de survol */
 }
 
 /* Styles light theme pour Boutons Globaux */

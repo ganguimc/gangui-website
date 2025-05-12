@@ -77,6 +77,8 @@ function updateLanguage(lang, savePreference = true) {
         if (translations[lang] && typeof translations[lang][key] !== 'undefined') {
             if (element.hasAttribute('data-lang-html')) {
                 element.innerHTML = translations[lang][key];
+            } else if ((element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') && element.hasAttribute('placeholder')) {
+                element.setAttribute('placeholder', translations[lang][key]);
             } else {
                 element.textContent = translations[lang][key];
             }

@@ -361,41 +361,72 @@
 
 .player-search-container {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem; /* Réduit pour rapprocher du profil */
+    gap: 0.75rem; /* Ajusté */
+    margin-bottom: 2rem;
     align-items: center;
     justify-content: center;
     width: 100%;
-    max-width: 700px; 
+    max-width: 700px;
     margin-left: auto;
     margin-right: auto;
-    padding: 1rem;
+    padding: 0.75rem; /* Ajusté */
     background-color: var(--bg-light);
-    border-radius: 16px;
+    border-radius: 12px; /* Harmonisé et ajusté */
     box-shadow: var(--box-shadow);
 }
 
 #player-search-input {
     flex-grow: 1;
-    padding: 1rem 1rem;
+    padding: 0.75rem 1rem; /* Padding vertical ajusté pour harmonie */
     border-radius: var(--border-radius);
     border: 1.5px solid var(--bg-lighter);
-    background-color: var(--bg-darker); 
+    background-color: var(--bg-darker);
     color: var(--text-primary);
     font-size: 1.05rem;
     outline: none;
     transition: border-color var(--transition), box-shadow var(--transition);
 }
 
-#player-search-input:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 252, 139, 79), 0.3);
+#player-search-input::placeholder {
+    color: var(--text-muted); /* Style pour le placeholder */
+    opacity: 0.8; /* Optionnel: rendre un peu plus transparent */
 }
 
-/* Vous aurez besoin de définir --primary-rgb dans :root si ce n'est pas déjà fait, ex: --primary-rgb: 252,139,79; */
+#player-search-input:focus {
+    border-color: var(--primary);
+    /* Assurez-vous que --primary-rgb est défini dans :root de votre CSS global */
+    /* ex: --primary-rgb: 252,139,79; (si --primary est #fc8b4f) */
+    box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 252, 139, 79), 0.35); /* Légère augmentation de l'opacité du shadow */
+}
 
 #player-search-btn {
     white-space: nowrap; /* Empêche le texte du bouton de passer à la ligne */
+    /* Assurez-vous que ce bouton a les classes .btn (et .btn-primary ou autre) dans le HTML */
+    /* pour hériter des styles de bouton de base */
+    padding: 0.75rem 1.3rem; /* Exemple pour correspondre à la hauteur de l'input si les classes .btn ne suffisent pas */
+    font-size: 1.05rem; /* Exemple pour correspondre */
+}
+
+/* Thème Clair pour la barre de recherche */
+.light-theme .player-search-container {
+    background-color: var(--bg-light); /* Devrait déjà être #fff via la variable */
+    box-shadow: var(--box-shadow); /* Devrait utiliser l'ombre du thème clair */
+}
+
+.light-theme #player-search-input {
+    border-color: #e0e0e0;
+    background-color: #ffffff; /* Explicite pour le thème clair */
+    color: var(--text-primary); /* Devrait être la couleur de texte sombre du thème clair */
+}
+
+.light-theme #player-search-input::placeholder {
+    color: var(--text-muted); /* Utilise la variable text-muted du thème clair */
+}
+
+.light-theme #player-search-input:focus {
+    border-color: var(--primary);
+    /* Assurez-vous que --primary-rgb est défini et correct pour le thème clair */
+    box-shadow: 0 0 0 3px rgba(var(--primary-rgb, 252, 139, 79), 0.25); /* Ombre de focus pour thème clair */
 }
 
 .search-message {
@@ -466,16 +497,16 @@
     .player-search-container {
         flex-direction: column;
         gap: 0.75rem;
-        padding: 1.5rem;
+        padding: 1rem; /* Un peu plus de padding sur mobile pour le conteneur */
         margin-bottom: 1.5rem;
     }
     #player-search-input {
         width: 100%;
     }
-    #player-search-button {
+    #player-search-btn { /* Harmonisé avec #player-search-btn */
         width: 100%;
     }
-    .player-profile {
+    .player-profile { /* Ce style était déjà là, je le conserve */
         padding: 1.5rem;
     }
 }

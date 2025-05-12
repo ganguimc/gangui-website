@@ -153,10 +153,10 @@ const MOCK_PLAYER_DB = {
         lastSeen: new Date("2025-05-08T18:00:00Z").getTime(),
         playTime: (1900 * 60 * 60 * 1000) + (36 * 60 * 1000) + (8 * 1000),
     },
-    "nathan818": {
-        uuid: "f351e57b3a23490488202dab58f01e61",
-        username: "nathan818",
-        role: "ai",
+    "petpn": {
+        uuid: "b40d343b9536455096d614d344e05ef4",
+        username: "petpn",
+        role: "build",
         isOnline: true,
         firstSeen: new Date("2023-01-15T10:00:00Z").getTime(),
         lastSeen: new Date().getTime(),
