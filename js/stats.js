@@ -350,10 +350,12 @@ function displayPlayerData(playerData) {
     playerUsernameEl.textContent = playerData.displayName || getTranslation('stats-unknown-player', 'Unknown Player');
     playerUuidValueEl.textContent = playerData.uuid ? formatUUID(playerData.uuid) : 'N/A';
 
-    const roleText = playerData.role ? playerData.role.toLowerCase() : 'player';
+    // Forcer la conversion de 'player' en 'member'
+    let roleText = playerData.role ? playerData.role.toLowerCase() : 'member';
+    if (roleText === 'player') roleText = 'member';
     playerRoleEl.textContent = getTranslation(`stats-role-${roleText}`, roleText.toUpperCase());
     playerRoleEl.className = `player-role ${roleText}`;
-    playerRoleEl.style.display = playerData.role ? 'inline-flex' : 'none';
+    playerRoleEl.style.display = 'inline-flex';
 
     playerStatusIndicator.classList.toggle('online', playerData.isOnline);
     playerStatusIndicator.classList.toggle('offline', !playerData.isOnline);
@@ -405,7 +407,7 @@ async function handlePlayerSearch() {
         if (playerData) {
             displayPlayerData(playerData);
             const url = new URL(window.location);
-            url.searchParams.set('player', playerData.displayName || playerData.username); 
+            url.searchParams.set('member', playerData.displayName || playerData.username); 
             window.history.pushState({ player: playerData.displayName || playerData.username }, '', url);
         } else {
             showSearchMessage('stats-player-not-found', 'error', true);
@@ -426,7 +428,7 @@ async function handlePlayerSearch() {
 
 function loadPlayerFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
-    const playerIdentifier = urlParams.get('player');
+    const playerIdentifier = urlParams.get('member');
     if (playerIdentifier) {
         searchInput.value = playerIdentifier;
         handlePlayerSearch();
