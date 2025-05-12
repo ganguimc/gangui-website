@@ -73,15 +73,27 @@ async function getProfileFromUsername(username) {
     if (!username) return null;
     const proxy = 'https://corsproxy.io/?';
     const targetUrl = `https://api.mojang.com/users/profiles/minecraft/${encodeURIComponent(username)}`;
-    const apiUrl = `${proxy}${targetUrl}`; // Certains proxies nécessitent que l_URL cible soit encodée
-    // Pour corsproxy.io, il semble qu_il faille juste préfixer :
-    // const apiUrl = `${proxy}${targetUrl}`;
+    const apiUrl = `${proxy}${targetUrl}`;
     console.log("getProfileFromUsername: Fetching proxied URL:", `${proxy}${targetUrl}`);
     try {
         const response = await fetch(`${proxy}${targetUrl}`);
         console.log("getProfileFromUsername: Response status:", response.status);
         if (response.status === 204 || response.status === 404) {
-            console.warn(`Player "${username}" not found via Mojang API (status: ${response.status}).`);
+            console.warn(`Player "${username}" not found via Mojang API (status: ${response.status}). Trying Ashcon fallback...`);
+            // Fallback Ashcon
+            try {
+                const ashconUrl = `https://api.ashcon.app/mojang/v2/user/${encodeURIComponent(username)}`;
+                const ashconResp = await fetch(ashconUrl);
+                if (ashconResp.ok) {
+                    const ashconData = await ashconResp.json();
+                    console.log("Ashcon fallback success:", ashconData);
+                    return ashconData && ashconData.uuid && ashconData.username ? { uuid: ashconData.uuid.replace(/-/g, ""), name: ashconData.username } : null;
+                } else {
+                    console.warn(`Ashcon fallback failed for ${username} (status: ${ashconResp.status})`);
+                }
+            } catch (ashconErr) {
+                console.error(`Ashcon fallback error for ${username}:`, ashconErr);
+            }
             return null;
         }
         if (!response.ok) {
@@ -96,6 +108,20 @@ async function getProfileFromUsername(username) {
         return data && data.id ? { uuid: data.id.replace(/-/g, ""), name: data.name } : null;
     } catch (error) {
         console.error(`Error in getProfileFromUsername for "${username}":`, error);
+        // Fallback Ashcon même en cas d'erreur réseau Mojang
+        try {
+            const ashconUrl = `https://api.ashcon.app/mojang/v2/user/${encodeURIComponent(username)}`;
+            const ashconResp = await fetch(ashconUrl);
+            if (ashconResp.ok) {
+                const ashconData = await ashconResp.json();
+                console.log("Ashcon fallback success:", ashconData);
+                return ashconData && ashconData.uuid && ashconData.username ? { uuid: ashconData.uuid.replace(/-/g, ""), name: ashconData.username } : null;
+            } else {
+                console.warn(`Ashcon fallback failed for ${username} (status: ${ashconResp.status})`);
+            }
+        } catch (ashconErr) {
+            console.error(`Ashcon fallback error for ${username}:`, ashconErr);
+        }
         return null;
     }
 }
@@ -135,28 +161,19 @@ function getSkinUrlCrafatar(uuid) {
 }
 
 const MOCK_PLAYER_DB = {
-    "djeel": {
-        uuid: "fe9ac36950eb4fe290d6b4de671f4978",
-        username: "djeel", // La casse que vous voulez dans MOCK_DB
-        role: "admin",
+    "petpn": {
+        uuid: "b40d343b9536455096d614d344e05ef4",
+        username: "petpn", // La casse que vous voulez dans MOCK_DB
+        role: "build",
         isOnline: true,
         firstSeen: new Date("2023-01-15T10:00:00Z").getTime(),
         lastSeen: new Date().getTime(),
         playTime: (350 * 60 * 60 * 1000) + (45 * 60 * 1000),
     },
-    "tomastore": {
-        uuid: "674ba97b64fe47c1aaf2000a01d0037e",
-        username: "Gangui",
-        role: "player",
-        isOnline: false,
-        firstSeen: new Date("2022-11-20T14:30:00Z").getTime(),
-        lastSeen: new Date("2025-05-08T18:00:00Z").getTime(),
-        playTime: (1900 * 60 * 60 * 1000) + (36 * 60 * 1000) + (8 * 1000),
-    },
-    "petpn": {
-        uuid: "b40d343b9536455096d614d344e05ef4",
-        username: "petpn",
-        role: "build",
+    "djeel": {
+        uuid: "fe9ac36950eb4fe290d6b4de671f4978",
+        username: "djeel", // La casse que vous voulez dans MOCK_DB
+        role: "admin",
         isOnline: true,
         firstSeen: new Date("2023-01-15T10:00:00Z").getTime(),
         lastSeen: new Date().getTime(),
@@ -210,7 +227,11 @@ async function fetchPlayerData(identifier) {
         }
     }
 
-    if (!uuid) return null;
+    // Vérification de l'UUID valide (32 caractères hexadécimaux)
+    if (!uuid || !/^[0-9a-fA-F]{32}$/.test(uuid)) {
+        showSearchMessage('stats-player-not-found', 'error', true);
+        return null;
+    }
 
     const skinUrl = getSkinUrlCrafatar(uuid);
     let additionalStats = {
@@ -348,7 +369,11 @@ function displayPlayerData(playerData) {
     playerProfileLoadingEl.style.display = 'flex';
     playerStatsDisplaySection.style.display = 'block';
 
-    const skinDisplayUrl = playerData.skinUrl || getSkinUrlCrafatar(playerData.uuid);
+    // Toujours garantir une URL de skin (Steve par défaut si uuid non valide)
+    let skinDisplayUrl = playerData.skinUrl;
+    if (!skinDisplayUrl || typeof skinDisplayUrl !== 'string' || !skinDisplayUrl.includes('crafatar.com')) {
+        skinDisplayUrl = getSkinUrlCrafatar(playerData.uuid);
+    }
     setupSkinViewer(skinDisplayUrl);
 
     playerUsernameEl.textContent = playerData.displayName || getTranslation('stats-unknown-player', 'Unknown Player');
