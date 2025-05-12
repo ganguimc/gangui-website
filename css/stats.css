@@ -60,7 +60,7 @@
     position: relative;
     z-index: 2;
     width: 300px;
-    height: 500px;
+    height: 400px;
     flex-shrink: 0;
     border-radius: 16px;
     overflow: hidden;

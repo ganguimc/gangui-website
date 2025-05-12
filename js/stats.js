@@ -295,10 +295,10 @@ function setupSkinViewer(skinUrl) {
             width: containerWidth,
             height: containerHeight,
             skin: actualSkinUrl,
-            zoom: 0.45, // Valeur par défaut agréable pour Minecraft
+            zoom: 0.0, // Encore moins zoomé pour voir tout le skin
         });
         skinViewerContainer.appendChild(skinViewer.canvas);
-        skinViewer.camera.position.set(0, 1.5, 7); // Caméra encore plus éloignée
+        skinViewer.camera.position.set(0, 1.5, 42); // Caméra très éloignée pour tout voir
         skinViewer.camera.lookAt(new THREE.Vector3(0, 0.9, 0));
         // Ajout d'une animation idle compatible multi-version
         const idleAnimation = new skinview3d.IdleAnimation();
@@ -325,12 +325,12 @@ function setupSkinViewer(skinUrl) {
         if(defaultAmbient) skinViewer.scene.remove(defaultAmbient);
         const defaultDirectional = skinViewer.scene.children.find(c => c.isDirectionalLight);
         if(defaultDirectional) skinViewer.scene.remove(defaultDirectional);
-        const ambient = new THREE.AmbientLight(0xffffff, 0.65);
+        const ambient = new THREE.AmbientLight(0xffffff, 1.5);
         skinViewer.scene.add(ambient);
-        const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.35);
+        const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.7);
         directionalLight1.position.set(3, 5, 3);
         skinViewer.scene.add(directionalLight1);
-        const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.25);
+        const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
         directionalLight2.position.set(-3, 5, -3);
         skinViewer.scene.add(directionalLight2);
         // ResizeObserver pour gérer le redimensionnement du conteneur
