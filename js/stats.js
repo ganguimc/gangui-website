@@ -298,7 +298,7 @@ function setupSkinViewer(skinUrl) {
             zoom: 0.45, // Valeur par défaut agréable pour Minecraft
         });
         skinViewerContainer.appendChild(skinViewer.canvas);
-        skinViewer.camera.position.set(0, 1.5, 5); // Caméra plus éloignée
+        skinViewer.camera.position.set(0, 1.5, 7); // Caméra encore plus éloignée
         skinViewer.camera.lookAt(new THREE.Vector3(0, 0.9, 0));
         // Ajout d'une animation idle compatible multi-version
         const idleAnimation = new skinview3d.IdleAnimation();
