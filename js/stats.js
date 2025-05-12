@@ -302,9 +302,9 @@ function setupSkinViewer(skinUrl) {
         skinViewer.camera.lookAt(new THREE.Vector3(0, 0.9, 0));
         // Nouvelle méthode pour skinview3d v3+
         const idleAnimation = new skinview3d.IdleAnimation();
-        skinViewer.playerObject.addAnimation(idleAnimation);
+        skinViewer.animations.add(idleAnimation);
         idleAnimation.play();
-        idleAnimation.speed = 0.6; // Ajuste la vitesse si besoin
+        idleAnimation.speed = 0.6;
 
         skinViewer.controls.enableRotate = true;
         skinViewer.controls.enableZoom = false;
