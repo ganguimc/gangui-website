@@ -333,6 +333,22 @@ function setupSkinViewer(skinUrl) {
         const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
         directionalLight2.position.set(-3, 5, -3);
         skinViewer.scene.add(directionalLight2);
+
+        // Rotation automatique du skin (compatible toutes versions)
+        function animateSkinRotation() {
+            try {
+                if (skinViewer && skinViewer.playerObject && skinViewer.playerObject.rotation) {
+                    skinViewer.playerObject.rotation.y -= 0.01;
+                }
+            } catch (e) {
+                console.warn("Erreur pendant la rotation automatique du skin:", e);
+            }
+            if (skinViewer) {
+                requestAnimationFrame(animateSkinRotation);
+            }
+        }
+        animateSkinRotation();
+
         // ResizeObserver pour gérer le redimensionnement du conteneur
         const resizeObserver = new ResizeObserver(entries => {
             if (!skinViewer || !entries || !entries.length) return;
