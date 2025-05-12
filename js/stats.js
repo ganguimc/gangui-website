@@ -265,38 +265,32 @@ async function fetchPlayerData(identifier) {
 
 // --- Logique d'affichage ---
 function setupSkinViewer(skinUrl) {
-    if (!skinViewerContainer) {
-        console.warn("Skin viewer container not found!");
-        return;
-    }
+    const container = document.getElementById('player-skin-viewer-container');
+    if (!container) return;
+    container.innerHTML = '';
     if (typeof skinview3d === 'undefined') {
-        console.error("skinview3d library is not loaded.");
-        skinViewerContainer.innerHTML = `<img src="${skinUrl || 'img/player-skin.png'}" alt="Player skin fallback" style="width:100%; height:100%; object-fit:contain; image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges;">`;
+        container.innerHTML = `<img src="${skinUrl || 'img/player-skin.png'}" alt="Player skin fallback" style="width:100%;height:100%;object-fit:contain;image-rendering:pixelated;">`;
         return;
     }
-
+    if (typeof skinview3d === 'undefined' || !skinview3d || !THREE) {
+        console.error("skinview3d library or THREE is not loaded.");
+        container.innerHTML = `<p class='error'>Erreur: skinview3d ou THREE non disponible</p>`;
+        return;
+    }
     while (skinViewerContainer.firstChild) {
         skinViewerContainer.removeChild(skinViewerContainer.firstChild);
     }
-    if (skinViewer && typeof skinViewer.dispose === 'function') { // Dispose de l'ancien viewer si existant
+    if (skinViewer && typeof skinViewer.dispose === 'function') {
         skinViewer.dispose();
     }
     skinViewer = null;
-
     try {
         let actualSkinUrl = skinUrl;
         if (!actualSkinUrl || actualSkinUrl.trim() === "") {
             actualSkinUrl = getSkinUrlCrafatar(null); // Steve par défaut
         }
-        
         const containerWidth = skinViewerContainer.offsetWidth || 200;
         const containerHeight = skinViewerContainer.offsetHeight || 300;
-
-        if(containerWidth === 0 || containerHeight === 0) {
-            console.warn("Skin viewer container has zero dimensions. Viewer might not render correctly.");
-            // Vous pourriez vouloir afficher un message ou ne pas initialiser le viewer.
-        }
-
         skinViewer = new skinview3d.SkinViewer({
             width: containerWidth,
             height: containerHeight,
@@ -304,51 +298,42 @@ function setupSkinViewer(skinUrl) {
             zoom: 0.75,
         });
         skinViewerContainer.appendChild(skinViewer.canvas);
-        
-        skinViewer.camera.position.set(0, 1.5, 3.5); 
-        skinViewer.camera.lookAt(new skinview3d.THREE.Vector3(0, 0.9, 0));
-
+        skinViewer.camera.position.set(0, 1.5, 3.5);
+        skinViewer.camera.lookAt(new THREE.Vector3(0, 0.9, 0));
         const idleAnimation = skinViewer.animationSystem.createAnimation(
-            skinview3d.IdleAnimation, 
-             { speed: 0.6, intensity: 0.01 }
+            skinview3d.IdleAnimation,
+            { speed: 0.6, intensity: 0.01 }
         );
         idleAnimation.play();
-
         skinViewer.controls.enableRotate = true;
         skinViewer.controls.enableZoom = false;
         skinViewer.controls.enablePan = false;
         skinViewer.controls.rotateSpeed = 0.5;
-        skinViewer.controls.minPolarAngle = Math.PI / 3;    
-        skinViewer.controls.maxPolarAngle = Math.PI * (2/3); 
-
-        // Nettoyer les lumières par défaut si elles existent et ne conviennent pas
+        skinViewer.controls.minPolarAngle = Math.PI / 3;
+        skinViewer.controls.maxPolarAngle = Math.PI * (2/3);
+        // Lumières custom
         const defaultAmbient = skinViewer.scene.children.find(c => c.isAmbientLight);
         if(defaultAmbient) skinViewer.scene.remove(defaultAmbient);
         const defaultDirectional = skinViewer.scene.children.find(c => c.isDirectionalLight);
         if(defaultDirectional) skinViewer.scene.remove(defaultDirectional);
-
-        const ambient = new skinview3d.THREE.AmbientLight(0xffffff, 0.65); 
+        const ambient = new THREE.AmbientLight(0xffffff, 0.65);
         skinViewer.scene.add(ambient);
-
-        const directionalLight1 = new skinview3d.THREE.DirectionalLight(0xffffff, 0.35); 
+        const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.35);
         directionalLight1.position.set(3, 5, 3);
         skinViewer.scene.add(directionalLight1);
-
-        const directionalLight2 = new skinview3d.THREE.DirectionalLight(0xffffff, 0.25); 
+        const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.25);
         directionalLight2.position.set(-3, 5, -3);
         skinViewer.scene.add(directionalLight2);
-        
         // ResizeObserver pour gérer le redimensionnement du conteneur
         const resizeObserver = new ResizeObserver(entries => {
             if (!skinViewer || !entries || !entries.length) return;
             const entry = entries[0];
             const { width, height } = entry.contentRect;
-            if (width > 0 && height > 0 && skinViewer.width !== width || skinViewer.height !== height) {
-                 skinViewer.setSize(width, height);
+            if (width > 0 && height > 0 && (skinViewer.width !== width || skinViewer.height !== height)) {
+                skinViewer.setSize(width, height);
             }
         });
         resizeObserver.observe(skinViewerContainer);
-
     } catch (error) {
         console.error("Erreur lors de l'initialisation de skinview3d:", error);
         skinViewerContainer.innerHTML = `<p class="error search-message error" style="display:block;">${getTranslation('stats-skin-error', 'Error loading skin')}</p>`;
@@ -364,12 +349,10 @@ function displayPlayerData(playerData) {
         return;
     }
     currentDisplayedPlayerInfo = { ...playerData };
-
     playerProfileContentEl.style.display = 'none';
     playerProfileLoadingEl.style.display = 'flex';
     playerStatsDisplaySection.style.display = 'block';
 
-    // Toujours garantir une URL de skin (Steve par défaut si uuid non valide)
     let skinDisplayUrl = playerData.skinUrl;
     if (!skinDisplayUrl || typeof skinDisplayUrl !== 'string' || !skinDisplayUrl.includes('crafatar.com')) {
         skinDisplayUrl = getSkinUrlCrafatar(playerData.uuid);
@@ -395,7 +378,6 @@ function displayPlayerData(playerData) {
     playerProfileLoadingEl.style.display = 'none';
     playerProfileContentEl.style.display = 'flex';
 }
-
 
 function showSearchMessage(messageKeyOrText, type = 'info', isKey = true) {
     const message = isKey ? getTranslation(messageKeyOrText, messageKeyOrText) : messageKeyOrText;
@@ -471,7 +453,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (searchButton && searchInput) {
         searchButton.addEventListener('click', handlePlayerSearch);
         searchInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') handlePlayerSearch();
+            if (event.key === 'Enter') {
+                handlePlayerSearch();
+            }
         });
     }
     
