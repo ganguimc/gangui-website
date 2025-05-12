@@ -71,60 +71,23 @@ function shortUUID(uuid) { // Renommé de UUID pour utiliser des caractères sta
 // --- API et Logique de Données Joueur ---
 async function getProfileFromUsername(username) {
     if (!username) return null;
-    const proxy = 'https://corsproxy.io/?';
-    const targetUrl = `https://api.mojang.com/users/profiles/minecraft/${encodeURIComponent(username)}`;
-    const apiUrl = `${proxy}${targetUrl}`;
-    console.log("getProfileFromUsername: Fetching proxied URL:", `${proxy}${targetUrl}`);
     try {
-        const response = await fetch(`${proxy}${targetUrl}`);
-        console.log("getProfileFromUsername: Response status:", response.status);
-        if (response.status === 204 || response.status === 404) {
-            console.warn(`Player "${username}" not found via Mojang API (status: ${response.status}). Trying Ashcon fallback...`);
-            // Fallback Ashcon
-            try {
-                const ashconUrl = `https://api.ashcon.app/mojang/v2/user/${encodeURIComponent(username)}`;
-                const ashconResp = await fetch(ashconUrl);
-                if (ashconResp.ok) {
-                    const ashconData = await ashconResp.json();
-                    console.log("Ashcon fallback success:", ashconData);
-                    return ashconData && ashconData.uuid && ashconData.username ? { uuid: ashconData.uuid.replace(/-/g, ""), name: ashconData.username } : null;
-                } else {
-                    console.warn(`Ashcon fallback failed for ${username} (status: ${ashconResp.status})`);
-                }
-            } catch (ashconErr) {
-                console.error(`Ashcon fallback error for ${username}:`, ashconErr);
-            }
+        const ashconUrl = `https://api.ashcon.app/mojang/v2/user/${encodeURIComponent(username)}`;
+        const ashconResp = await fetch(ashconUrl);
+        if (ashconResp.ok) {
+            const ashconData = await ashconResp.json();
+            console.log("Ashcon API success:", ashconData);
+            return ashconData && ashconData.uuid && ashconData.username ? { uuid: ashconData.uuid.replace(/-/g, ""), name: ashconData.username } : null;
+        } else {
+            console.warn(`Ashcon API failed for ${username} (status: ${ashconResp.status})`);
             return null;
         }
-        if (!response.ok) {
-            console.error(`Mojang API error (username to UUID): Status ${response.status}, StatusText: ${response.statusText}`);
-            let errorBody = "Could not read error body";
-            try { errorBody = await response.text(); } catch(e){}
-            console.error("Mojang API error body:", errorBody);
-            throw new Error(`Mojang API error: ${response.status}`);
-        }
-        const data = await response.json();
-        console.log("getProfileFromUsername: Data received:", data);
-        return data && data.id ? { uuid: data.id.replace(/-/g, ""), name: data.name } : null;
     } catch (error) {
         console.error(`Error in getProfileFromUsername for "${username}":`, error);
-        // Fallback Ashcon même en cas d'erreur réseau Mojang
-        try {
-            const ashconUrl = `https://api.ashcon.app/mojang/v2/user/${encodeURIComponent(username)}`;
-            const ashconResp = await fetch(ashconUrl);
-            if (ashconResp.ok) {
-                const ashconData = await ashconResp.json();
-                console.log("Ashcon fallback success:", ashconData);
-                return ashconData && ashconData.uuid && ashconData.username ? { uuid: ashconData.uuid.replace(/-/g, ""), name: ashconData.username } : null;
-            } else {
-                console.warn(`Ashcon fallback failed for ${username} (status: ${ashconResp.status})`);
-            }
-        } catch (ashconErr) {
-            console.error(`Ashcon fallback error for ${username}:`, ashconErr);
         }
         return null;
     }
-}
+
 
 async function getProfileFromUUID(uuid) {
     if (!uuid) return null;
