@@ -309,7 +309,9 @@ function setupSkinViewer(skinUrl) {
         } else {
             console.warn("Impossible d'ajouter l'animation idle : API skinview3d non reconnue.");
         }
-        idleAnimation.play();
+        if (typeof idleAnimation.play === "function") {
+            idleAnimation.play();
+        }
         idleAnimation.speed = 0.6;
 
         skinViewer.controls.enableRotate = true;
