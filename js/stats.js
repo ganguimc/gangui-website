@@ -300,9 +300,15 @@ function setupSkinViewer(skinUrl) {
         skinViewerContainer.appendChild(skinViewer.canvas);
         skinViewer.camera.position.set(0, 1.5, 3.5);
         skinViewer.camera.lookAt(new THREE.Vector3(0, 0.9, 0));
-        // Nouvelle méthode pour skinview3d v3+
+        // Ajout d'une animation idle compatible multi-version
         const idleAnimation = new skinview3d.IdleAnimation();
-        skinViewer.animations.add(idleAnimation);
+        if (skinViewer.animations && typeof skinViewer.animations.add === "function") {
+            skinViewer.animations.add(idleAnimation);
+        } else if (skinViewer.playerObject) {
+            skinViewer.playerObject.animation = idleAnimation;
+        } else {
+            console.warn("Impossible d'ajouter l'animation idle : API skinview3d non reconnue.");
+        }
         idleAnimation.play();
         idleAnimation.speed = 0.6;
 
